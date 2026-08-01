@@ -10,7 +10,6 @@ export function useDueFlashcards() {
   return useQuery({
     queryKey: ['dueFlashcards'],
     queryFn: async () => {
-      console.log('[useDueFlashcards] Trayendo flashcards debidas...');
       const supabase = createClient();
 
       // Ajuste de Zona Horaria: Enviar UTC exacto al milisegundo
@@ -61,7 +60,6 @@ export function useDueFlashcards() {
       }
 
       const dueCount = dueFlashcards?.length || 0;
-      console.log(`[useDueFlashcards] Encontradas ${dueCount} flashcards debidas`);
 
       if (!dueFlashcards || dueCount === 0) {
         return [];

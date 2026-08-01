@@ -84,7 +84,6 @@ export function useDashboardStats() {
 
       const logs = rawLogs || [];
       const totalAnswers = logs.length;
-      console.log(`[useDashboardStats] answer_logs: ${totalAnswers} registros`);
 
       // ── 5. Traer especialidades de las preguntas respondidas ──────────────
       // Solo hacemos esta query si hay respuestas

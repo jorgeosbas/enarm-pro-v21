@@ -10,6 +10,47 @@ import { ThemeToggle } from './ThemeToggle';
 import { AuthStatus } from './AuthStatus';
 import { SearchModal } from './SearchModal';
 
+// Mismas 4 pestañas que el menú de escritorio — antes el menú móvil
+// tenía 5 (incluía Flashcards y Perfil) y no coincidía con la versión web.
+// Se define FUERA del componente: son datos estáticos, así que en vez de
+// reconstruir el arreglo (y los 4 SVG) en cada render de Navigation
+// (por ejemplo, cada vez que cambias de página), se crea una sola vez.
+const NAV_ITEMS = [
+  {
+    label: 'Inicio', href: '/dashboard',
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Banco', href: '/banco-preguntas',
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
+        <ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12" /><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Importar', href: '/importar',
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Configuración', href: '/configuracion',
+    icon: (
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    ),
+  },
+];
+
 export function Navigation() {
   const pathname = usePathname();
   const { user, loading } = useAuth();
@@ -34,43 +75,7 @@ export function Navigation() {
     return undefined;
   }, [user]);
 
-  // Mismas 4 pestañas que el menú de escritorio — antes el menú móvil
-  // tenía 5 (incluía Flashcards y Perfil) y no coincidía con la versión web.
-  const navItems = [
-    {
-      label: 'Inicio', href: '/dashboard',
-      icon: (
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Banco', href: '/banco-preguntas',
-      icon: (
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
-          <ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12" /><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Importar', href: '/importar',
-      icon: (
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-        </svg>
-      ),
-    },
-    {
-      label: 'Configuración', href: '/configuracion',
-      icon: (
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8} className="h-5 w-5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-      ),
-    },
-  ];
+  const navItems = NAV_ITEMS;
 
   const isActive = (href: string) => pathname === href;
 
@@ -78,7 +83,7 @@ export function Navigation() {
     <>
       {/* Header principal — glassmorphism */}
       <header
-        className="sticky top-0 z-30 border-b border-indigo-300/40 bg-white/75 backdrop-blur-xl dark:border-white/[0.07] dark:bg-[#0a0a14]/80"
+        className="sticky top-0 z-30 border-b border-indigo-300/40 bg-white/75 backdrop-blur-xl will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14]/80"
       >
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 lg:px-6">
           {/* Logo */}
@@ -141,7 +146,7 @@ export function Navigation() {
           páginas a veces pintaba ENCIMA del menú, dejándolo inutilizable. */}
       {mounted && !loading && user && createPortal(
         <nav
-          className="fixed bottom-0 left-0 right-0 z-[9500] border-t border-indigo-300/40 bg-white/90 backdrop-blur-xl dark:border-white/[0.07] dark:bg-[#0a0a14]/95 md:hidden"
+          className="fixed bottom-0 left-0 right-0 z-[9500] border-t border-indigo-300/40 bg-white/90 backdrop-blur-xl will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14]/95 md:hidden"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           <div className="flex items-center justify-around px-2 py-2">

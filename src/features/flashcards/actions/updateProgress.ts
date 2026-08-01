@@ -32,7 +32,6 @@ export async function initializeAllFlashcardsAction() {
     }
 
     const userId = authData.user.id;
-    console.log(`🔍 Inicializando flashcards para usuario: ${userId}`);
 
     const { data: allQuestions, error: questionsError } = await supabase
       .from('questions')

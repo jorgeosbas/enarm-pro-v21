@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useQuestions } from '@/features/question-bank/hooks/useQuestions';
+import { SearchResultRow } from '@/components/SearchResultRow';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -44,19 +45,20 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     return undefined;
   }, [isOpen, onClose]);
 
-  const results =
-    searchQuery.trim().length === 0
-      ? []
-      : (allQuestions || []).filter(
-          (q) =>
-            q.vignette.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            q.explanation?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+  const results = useMemo(() => {
+    if (searchQuery.trim().length === 0) return [];
+    const term = searchQuery.toLowerCase();
+    return (allQuestions || []).filter(
+      (q) =>
+        q.vignette.toLowerCase().includes(term) ||
+        q.explanation?.toLowerCase().includes(term)
+    );
+  }, [allQuestions, searchQuery]);
 
-  function handleSelectQuestion(questionId: string) {
+  const handleSelectQuestion = useCallback((questionId: string) => {
     router.push(`/estudiar/${questionId}`);
     onClose();
-  }
+  }, [router, onClose]);
 
   // Solo renderiza en cliente y cuando está abierto
   if (!isOpen || !mounted) return null;
@@ -140,45 +142,11 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             {results.length > 0 && (
               <div className="space-y-1 p-3">
                 {results.map((question) => (
-                  <button
+                  <SearchResultRow
                     key={question.id}
-                    onClick={() => handleSelectQuestion(question.id)}
-                    className="w-full rounded-xl border border-transparent px-4 py-3 text-left transition-all hover:border-indigo-300/60 hover:bg-indigo-100/60 dark:hover:border-indigo-400/20 dark:hover:bg-indigo-500/[0.08]"
-                  >
-                    {/* Chips */}
-                    <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-                      <span className="rounded-full bg-indigo-100/80 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
-                        #{question.sequence_number}
-                      </span>
-                      {question.theme && (
-                        <span className="rounded-full bg-amber-100/80 px-2 py-0.5 text-[10px] text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
-                          {question.theme.name}
-                        </span>
-                      )}
-                      <span className={`text-[10px] font-medium ${
-                        question.difficulty === 'facil'
-                          ? 'text-emerald-500'
-                          : question.difficulty === 'media'
-                            ? 'text-amber-500'
-                            : 'text-rose-500'
-                      }`}>
-                        {question.difficulty}
-                      </span>
-                    </div>
-
-                    {/* Viñeta */}
-                    <p className="mb-1 line-clamp-2 text-[13px] leading-relaxed text-slate-700 dark:text-white/70">
-                      {question.vignette}
-                    </p>
-
-                    {/* Especialidad */}
-                    {question.subcategory?.specialty?.name && (
-                      <p className="text-[11px] text-slate-500 dark:text-white/25">
-                        {question.subcategory.specialty.name}
-                        {question.subcategory?.name && ` → ${question.subcategory.name}`}
-                      </p>
-                    )}
-                  </button>
+                    question={question}
+                    onSelect={handleSelectQuestion}
+                  />
                 ))}
               </div>
             )}

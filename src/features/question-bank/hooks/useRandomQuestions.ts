@@ -66,9 +66,12 @@ export function useRandomQuestionsFromSubcategory(subcategoryId: string | null) 
 
       if (!data || data.length === 0) return [];
 
+      const questionIds = (data as any[]).map((q: any) => q.id);
+
       const { data: options, error: optionsError } = await supabase
         .from('question_options')
-        .select('id, question_id, label, content, is_correct');
+        .select('id, question_id, label, content, is_correct')
+        .in('question_id', questionIds);
 
       if (optionsError) throw optionsError;
 
@@ -119,9 +122,12 @@ export function useRandomQuestionsFromAll() {
 
       if (!data || data.length === 0) return [];
 
+      const questionIds = (data as any[]).map((q: any) => q.id);
+
       const { data: options, error: optionsError } = await supabase
         .from('question_options')
-        .select('id, question_id, label, content, is_correct');
+        .select('id, question_id, label, content, is_correct')
+        .in('question_id', questionIds);
 
       if (optionsError) throw optionsError;
 

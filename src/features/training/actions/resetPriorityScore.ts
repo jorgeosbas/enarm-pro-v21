@@ -69,7 +69,6 @@ export async function resetPriorityScoreAction() {
       };
     }
 
-    console.log(`✅ Historial de respuestas borrado: ${totalRecords} registros eliminados`);
 
     return {
       success: true,

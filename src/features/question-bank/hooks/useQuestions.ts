@@ -67,9 +67,12 @@ export function useQuestions(subcategoryId?: string | null) {
 
       if (!questions || questions.length === 0) return [];
 
+      const questionIds = (questions as any[]).map((q: any) => q.id);
+
       const { data: options, error: optionsError } = await supabase
         .from('question_options')
-        .select('id, question_id, label, content, is_correct');
+        .select('id, question_id, label, content, is_correct')
+        .in('question_id', questionIds);
 
       if (optionsError) throw optionsError;
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { CustomSelect } from '@/components/ui/CustomSelect';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
@@ -10,6 +10,7 @@ import { useSubcategoriesBySpecialty } from '@/features/question-bank/hooks/useS
 import { useThemesBySubcategory } from '@/features/question-bank/hooks/useThemesBySubcategory';
 import { deleteQuestionAction } from '@/features/question-bank/actions/deleteQuestion';
 import { Navigation } from '@/components/Navigation';
+import { QuestionRow } from '@/components/QuestionRow';
 
 export default function BancoPreguntas() {
   const queryClient = useQueryClient();
@@ -24,7 +25,10 @@ export default function BancoPreguntas() {
   const { data: themes } = useThemesBySubcategory(selectedSubcategory || null);
   const { data: questions, isLoading: questionsLoading, error } = useQuestions(selectedSubcategory || null);
 
-  async function handleDeleteQuestion(e: React.MouseEvent, questionId: string) {
+  // useCallback: la función se mantiene estable entre renders para que
+  // QuestionRow (envuelto en React.memo) no la vea como "una prop nueva"
+  // y se vuelva a dibujar sin necesidad.
+  const handleDeleteQuestion = useCallback(async (e: React.MouseEvent, questionId: string) => {
     e.preventDefault(); e.stopPropagation();
     if (!confirm('¿Eliminar esta pregunta? No se puede deshacer.')) return;
     setDeletingId(questionId);
@@ -40,20 +44,25 @@ export default function BancoPreguntas() {
     } finally {
       setDeletingId(null);
     }
-  }
+  }, [queryClient, selectedSubcategory]);
 
-  let displayQuestions = selectedSubcategory ? questions : null;
-  if (displayQuestions && selectedTheme) {
-    displayQuestions = selectedTheme === 'null'
-      ? displayQuestions.filter((q) => !q.theme_id)
-      : displayQuestions.filter((q) => q.theme_id === selectedTheme);
-  }
-  if (displayQuestions && searchQuery.trim()) {
-    const term = searchQuery.toLowerCase();
-    displayQuestions = displayQuestions.filter(
-      (q2) => q2.vignette.toLowerCase().includes(term) || q2.explanation?.toLowerCase().includes(term)
-    );
-  }
+  // useMemo: el filtrado (tema + búsqueda) solo se recalcula cuando
+  // realmente cambian las preguntas o los filtros, no en cualquier re-render.
+  const displayQuestions = useMemo(() => {
+    let result = selectedSubcategory ? questions : null;
+    if (result && selectedTheme) {
+      result = selectedTheme === 'null'
+        ? result.filter((q) => !q.theme_id)
+        : result.filter((q) => q.theme_id === selectedTheme);
+    }
+    if (result && searchQuery.trim()) {
+      const term = searchQuery.toLowerCase();
+      result = result.filter(
+        (q2) => q2.vignette.toLowerCase().includes(term) || q2.explanation?.toLowerCase().includes(term)
+      );
+    }
+    return result;
+  }, [questions, selectedSubcategory, selectedTheme, searchQuery]);
 
   // Solución definitiva de tipado para currentSubcategory:
   const subcategoriesList = (subcategories as any[]) || [];
@@ -194,48 +203,12 @@ export default function BancoPreguntas() {
 
             <div className="space-y-2 animate-slide-up">
               {displayQuestions.map((question: any) => (
-                <div key={question.id} className="flex items-center gap-3 rounded-xl border border-indigo-300/50 bg-white/70 p-4 backdrop-blur-md transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.07]">
-                  <Link href={`/estudiar/${question.id}`} className="flex-1 min-w-0">
-                    <div className="mb-1.5 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-indigo-100/80 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
-                        #{question.sequence_number}
-                      </span>
-                      {question.theme && (
-                        <span className="rounded-full bg-amber-100/80 px-2 py-0.5 text-[10px] text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
-                          {question.theme.name}
-                        </span>
-                      )}
-                      <span className={`text-[10px] font-medium ${
-                        question.difficulty === 'facil' ? 'text-emerald-600 dark:text-emerald-400'
-                        : question.difficulty === 'media' ? 'text-amber-600 dark:text-amber-400'
-                        : 'text-rose-600 dark:text-rose-400'
-                      }`}>
-                        {question.difficulty}
-                      </span>
-                    </div>
-                    <p className="line-clamp-2 text-[13px] leading-relaxed text-slate-700 dark:text-white/65">
-                      {question.vignette}
-                    </p>
-                  </Link>
-
-                  <button
-                    onClick={(e) => handleDeleteQuestion(e, question.id)}
-                    disabled={deletingId === question.id}
-                    className="flex-shrink-0 rounded-xl border border-rose-300/50 bg-rose-100/55 p-2 text-rose-500 transition-colors hover:bg-rose-100/80 disabled:opacity-40 dark:border-rose-400/20 dark:bg-rose-500/[0.07] dark:text-rose-400"
-                    title="Eliminar pregunta"
-                  >
-                    {deletingId === question.id ? (
-                      <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                      </svg>
-                    ) : (
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
-                      </svg>
-                    )}
-                  </button>
-                </div>
+                <QuestionRow
+                  key={question.id}
+                  question={question}
+                  isDeleting={deletingId === question.id}
+                  onDelete={handleDeleteQuestion}
+                />
               ))}
             </div>
           </div>

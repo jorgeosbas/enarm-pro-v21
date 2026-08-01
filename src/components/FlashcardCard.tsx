@@ -11,6 +11,33 @@ interface FlashcardCardProps {
   totalCards?: number;
 }
 
+// Tarjetas blancas de vidrio con acento de color fuerte (ícono + borde lateral),
+// en vez de teñir toda la superficie — así el contraste se mantiene alto.
+// No depende de props ni de estado, así que vive fuera del componente:
+// antes se recreaba este arreglo (con sus 4 objetos) en cada render/flip.
+const RATING_BUTTONS = [
+  {
+    rating: 'again' as FlashcardRating, label: 'Repetir', emoji: '❌',
+    iconBg: 'bg-rose-500/70', textColor: 'text-rose-700 dark:text-rose-300',
+    cls: 'border-indigo-300/50 bg-white/85 hover:border-rose-300 hover:bg-rose-50/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-rose-500/[0.07]',
+  },
+  {
+    rating: 'hard' as FlashcardRating, label: 'Difícil', emoji: '😕',
+    iconBg: 'bg-amber-500/70', textColor: 'text-amber-700 dark:text-amber-300',
+    cls: 'border-indigo-300/50 bg-white/85 hover:border-amber-300 hover:bg-amber-50/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-amber-500/[0.07]',
+  },
+  {
+    rating: 'good' as FlashcardRating, label: 'Bien', emoji: '😊',
+    iconBg: 'bg-indigo-500/70', textColor: 'text-indigo-700 dark:text-indigo-300',
+    cls: 'border-indigo-300/50 bg-white/85 hover:border-indigo-300 hover:bg-indigo-50/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-indigo-500/[0.07]',
+  },
+  {
+    rating: 'easy' as FlashcardRating, label: 'Fácil', emoji: '🎉',
+    iconBg: 'bg-emerald-500/70', textColor: 'text-emerald-700 dark:text-emerald-300',
+    cls: 'border-indigo-300/50 bg-white/85 hover:border-emerald-300 hover:bg-emerald-50/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-emerald-500/[0.07]',
+  },
+];
+
 export function FlashcardCard({
   flashcard,
   onRate,
@@ -40,31 +67,6 @@ export function FlashcardCard({
 
   const correctOption = flashcard.options.find((opt) => opt.is_correct);
 
-  // Tarjetas blancas de vidrio con acento de color fuerte (ícono + borde lateral),
-  // en vez de teñir toda la superficie — así el contraste se mantiene alto.
-  const ratingButtons = [
-    {
-      rating: 'again' as FlashcardRating, label: 'Repetir', emoji: '❌',
-      iconBg: 'bg-rose-500/70', textColor: 'text-rose-700 dark:text-rose-300',
-      cls: 'border-indigo-300/50 bg-white/85 hover:border-rose-300 hover:bg-rose-50/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-rose-500/[0.07]',
-    },
-    {
-      rating: 'hard' as FlashcardRating, label: 'Difícil', emoji: '😕',
-      iconBg: 'bg-amber-500/70', textColor: 'text-amber-700 dark:text-amber-300',
-      cls: 'border-indigo-300/50 bg-white/85 hover:border-amber-300 hover:bg-amber-50/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-amber-500/[0.07]',
-    },
-    {
-      rating: 'good' as FlashcardRating, label: 'Bien', emoji: '😊',
-      iconBg: 'bg-indigo-500/70', textColor: 'text-indigo-700 dark:text-indigo-300',
-      cls: 'border-indigo-300/50 bg-white/85 hover:border-indigo-300 hover:bg-indigo-50/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-indigo-500/[0.07]',
-    },
-    {
-      rating: 'easy' as FlashcardRating, label: 'Fácil', emoji: '🎉',
-      iconBg: 'bg-emerald-500/70', textColor: 'text-emerald-700 dark:text-emerald-300',
-      cls: 'border-indigo-300/50 bg-white/85 hover:border-emerald-300 hover:bg-emerald-50/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-emerald-500/[0.07]',
-    },
-  ];
-
   return (
     <div className={`mx-auto max-w-2xl ${answerAnim === 'wrong' ? 'animate-shake' : answerAnim === 'correct' ? 'animate-bounce-in' : ''}`}>
       {/* Mini stats */}
@@ -81,7 +83,7 @@ export function FlashcardCard({
         {/* Cara frontal — pregunta */}
         <div
           onClick={() => setIsFlipped(true)}
-          className={`absolute inset-0 rounded-2xl border p-8 backdrop-blur-md transition-all duration-500 ${
+          className={`absolute inset-0 rounded-2xl border p-8 backdrop-blur-md transition-[transform,opacity] duration-500 will-change-transform ${
             isFlipped
               ? 'scale-95 opacity-0 pointer-events-none z-0 border-indigo-300/50 bg-white/70 dark:border-white/[0.08] dark:bg-white/[0.04]'
               : 'scale-100 opacity-100 pointer-events-auto z-10 border-indigo-300/60 bg-white/85 dark:border-indigo-400/20 dark:bg-indigo-500/[0.06]'
@@ -103,7 +105,7 @@ export function FlashcardCard({
         {/* Cara trasera — respuesta */}
         <div
           onClick={() => setIsFlipped(false)}
-          className={`absolute inset-0 overflow-hidden rounded-2xl border p-8 backdrop-blur-md transition-all duration-500 ${
+          className={`absolute inset-0 overflow-hidden rounded-2xl border p-8 backdrop-blur-md transition-[transform,opacity] duration-500 will-change-transform ${
             isFlipped
               ? 'scale-100 opacity-100 pointer-events-auto z-10 border-slate-200/70 bg-white/90 dark:border-white/[0.08] dark:bg-white/[0.04]'
               : 'scale-95 opacity-0 pointer-events-none z-0 border-indigo-300/50 bg-white/70 dark:border-white/[0.08] dark:bg-white/[0.04]'
@@ -149,7 +151,7 @@ export function FlashcardCard({
             ¿Qué tan bien la recordabas?
           </p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {ratingButtons.map(({ rating, label, emoji, iconBg, textColor, cls }) => (
+            {RATING_BUTTONS.map(({ rating, label, emoji, iconBg, textColor, cls }) => (
               <button
                 key={rating}
                 onClick={() => handleRateClick(rating)}

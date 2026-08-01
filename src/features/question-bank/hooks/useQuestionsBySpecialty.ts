@@ -75,10 +75,13 @@ export function useQuestionsBySpecialty(specialtyId: string | null) {
 
       if (questionsError || !questions) return [];
 
-      // Traer opciones
+      const questionIds = (questions as any[]).map((q: any) => q.id);
+
+      // Traer opciones (solo de las preguntas obtenidas arriba)
       const { data: options, error: optionsError } = await supabase
         .from('question_options')
-        .select('id, question_id, label, content, is_correct');
+        .select('id, question_id, label, content, is_correct')
+        .in('question_id', questionIds);
 
       if (optionsError) return [];
 
