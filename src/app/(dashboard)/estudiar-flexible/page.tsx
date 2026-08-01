@@ -138,7 +138,7 @@ export default function EstudiarFlexiblePage() {
               Aciertos: {correctCount}/{progress - 1 > 0 ? progress - 1 : 0}
             </span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-indigo-100/70 dark:bg-white/[0.08]">
+          <div className="h-1.5 w-full overflow-hidden rounded-full border border-indigo-300/40 bg-white/60 dark:border-transparent dark:bg-white/[0.08]">
             <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-400 transition-all" style={{ width: `${(progress / total) * 100}%` }} />
           </div>
         </div>

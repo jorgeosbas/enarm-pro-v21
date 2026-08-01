@@ -11,10 +11,10 @@ import { FlashcardRating, FlashcardWithProgress } from '@/features/flashcards/ty
 
 export default function FlashcardsPage() {
   const router = useRouter();
-  
+
   // Extraemos SOLO refetch. Ignoramos la caché local de React Query.
   const { refetch } = useDueFlashcards();
-  
+
   // queue = null significa "Estamos cargando la verdad absoluta"
   const [queue, setQueue] = useState<FlashcardWithProgress[] | null>(null);
   const [completedCount, setCompletedCount] = useState(0);
@@ -29,7 +29,7 @@ export default function FlashcardsPage() {
       try {
         // 1. Pedimos los datos frescos a Supabase directo (ignorando cachés)
         const { data, error } = await refetch();
-        
+
         if (error) throw error;
 
         let finalData = data || [];
@@ -79,11 +79,11 @@ export default function FlashcardsPage() {
   // ==========================================
   if (errorMsg) {
     return (
-      <div className="relative min-h-screen bg-[#f4f3ff] dark:bg-[#0a0a14]">
+      <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
         <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
         <div className="relative z-10"><Navigation /></div>
         <main className="relative z-10 mx-auto max-w-2xl px-4 pt-10">
-          <div className="rounded-xl border border-rose-300/40 bg-rose-50/60 p-5 backdrop-blur-md dark:border-rose-400/20 dark:bg-rose-500/[0.07]">
+          <div className="rounded-xl border border-rose-300/50 bg-rose-100/55 p-5 backdrop-blur-md dark:border-rose-400/20 dark:bg-rose-500/[0.07]">
             <p className="text-[13px] text-rose-700 dark:text-rose-300">{errorMsg}</p>
           </div>
         </main>
@@ -96,15 +96,15 @@ export default function FlashcardsPage() {
   // ==========================================
   if (queue.length === 0) {
     return (
-      <div className="relative min-h-screen bg-[#f4f3ff] dark:bg-[#0a0a14]">
+      <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
         <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
         <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
         <div className="relative z-10"><Navigation /></div>
         <main className="relative z-10 mx-auto max-w-2xl px-4 pb-24 pt-10 text-center">
-          <div className="rounded-2xl border border-emerald-300/40 bg-white/60 p-12 backdrop-blur-md dark:border-emerald-400/20 dark:bg-white/[0.04]">
+          <div className="rounded-2xl border border-emerald-300/50 bg-white/70 p-12 backdrop-blur-md dark:border-emerald-400/20 dark:bg-white/[0.04]">
             <div className="mb-4 text-5xl">🎉</div>
             <h2 className="mb-2 text-[18px] font-medium text-[#1e1b4b] dark:text-white">¡Al día con tus flashcards!</h2>
-            <p className="mb-6 text-[13px] text-slate-400 dark:text-white/40">
+            <p className="mb-6 text-[13px] text-slate-500 dark:text-white/40">
               Has completado todas las tarjetas de hoy. Vuelve mañana para continuar.
             </p>
             <button onClick={() => router.push('/banco-preguntas')} className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90">
@@ -160,12 +160,12 @@ export default function FlashcardsPage() {
 
   if (!currentFlashcard) return null;
 
-  const percentComplete = totalInitial > 0 
-    ? Math.min(100, Math.round((completedCount / totalInitial) * 100)) 
+  const percentComplete = totalInitial > 0
+    ? Math.min(100, Math.round((completedCount / totalInitial) * 100))
     : 0;
 
   return (
-    <div className="relative min-h-screen bg-[#f4f3ff] dark:bg-[#0a0a14]">
+    <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
       <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
 
@@ -178,11 +178,11 @@ export default function FlashcardsPage() {
             <span className="text-[13px] font-medium text-[#1e1b4b] dark:text-white/80">
               Progreso: {completedCount} de {totalInitial}
             </span>
-            <span className="text-[12px] text-slate-400 dark:text-white/35">
+            <span className="text-[12px] text-slate-500 dark:text-white/35">
               {percentComplete}% · {queue.length} en cola
             </span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-indigo-100/60 dark:bg-white/[0.08]">
+          <div className="h-1.5 w-full overflow-hidden rounded-full border border-indigo-300/40 bg-white/60 dark:border-transparent dark:bg-white/[0.08]">
             <div
               className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-400 transition-all duration-300"
               style={{ width: `${percentComplete}%` }}
@@ -193,17 +193,17 @@ export default function FlashcardsPage() {
         {/* Chips de categoría */}
         <div className="mb-5 flex flex-wrap items-center gap-2">
           {currentFlashcard.subcategory?.specialty?.name && (
-            <span className="rounded-full border border-indigo-200/50 bg-indigo-100/60 px-3 py-1 text-[12px] text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-500/15 dark:text-indigo-300">
+            <span className="rounded-full border border-indigo-300/50 bg-indigo-100/60 px-3 py-1 text-[12px] text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-500/15 dark:text-indigo-300">
               {currentFlashcard.subcategory.specialty.name}
             </span>
           )}
           {currentFlashcard.subcategory?.name && (
-            <span className="rounded-full border border-indigo-200/40 bg-white/60 px-3 py-1 text-[12px] text-slate-600 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
+            <span className="rounded-full border border-indigo-300/50 bg-white/70 px-3 py-1 text-[12px] text-slate-700 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
               {currentFlashcard.subcategory.name}
             </span>
           )}
           {currentFlashcard.theme && (
-            <span className="rounded-full border border-amber-200/50 bg-amber-50/60 px-3 py-1 text-[12px] text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-300">
+            <span className="rounded-full border border-amber-300/50 bg-amber-100/60 px-3 py-1 text-[12px] text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-300">
               {currentFlashcard.theme.name}
             </span>
           )}
@@ -221,10 +221,10 @@ export default function FlashcardsPage() {
         </div>
 
         <div className="mt-6 flex gap-3">
-          <button onClick={() => router.push('/banco-preguntas')} className="rounded-xl border border-indigo-200/40 bg-white/60 px-4 py-2.5 text-[13px] text-slate-600 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
+          <button onClick={() => router.push('/banco-preguntas')} className="rounded-xl border border-indigo-300/50 bg-white/65 px-4 py-2.5 text-[13px] text-slate-700 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
             ← Banco
           </button>
-          <button onClick={() => router.push('/dashboard')} className="rounded-xl border border-indigo-200/40 bg-white/60 px-4 py-2.5 text-[13px] text-slate-600 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
+          <button onClick={() => router.push('/dashboard')} className="rounded-xl border border-indigo-300/50 bg-white/65 px-4 py-2.5 text-[13px] text-slate-700 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
             Dashboard
           </button>
         </div>
