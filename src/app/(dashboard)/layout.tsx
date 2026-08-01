@@ -42,5 +42,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return null; // El useEffect ya redirigió a login
   }
 
-  return <>{children}</>;
+  // Colchón extra debajo de cada página en móvil, para que el contenido nunca
+  // quede pegado al menú inferior fijo — independiente del padding que ya
+  // traiga cada <main>. En escritorio no hay menú inferior, así que no aplica.
+  return <div className="pb-8 md:pb-0">{children}</div>;
 }
