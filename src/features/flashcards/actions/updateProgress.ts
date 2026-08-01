@@ -7,6 +7,14 @@ import { createCardFromProgress, calculateFSRS, convertRating, getStateString } 
 
 /**
  * Inicializar SOLO preguntas que NUNCA hayan sido registradas como flashcards
+ * para el usuario actual.
+ *
+ * Banco Compartido: se inicializa sobre TODO el banco de preguntas
+ * (no solo las que importó el propio usuario), porque cualquier usuario
+ * autenticado puede estudiar cualquier pregunta compartida. Antes esto
+ * filtraba por user_id = dueño de la pregunta, así que un usuario nuevo
+ * (que no ha importado nada) nunca generaba flashcards nuevas aunque el
+ * banco ya tuviera preguntas.
  */
 export async function initializeAllFlashcardsAction() {
   try {
@@ -29,7 +37,6 @@ export async function initializeAllFlashcardsAction() {
     const { data: allQuestions, error: questionsError } = await supabase
       .from('questions')
       .select('id, vignette')
-      .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
     if (questionsError) {

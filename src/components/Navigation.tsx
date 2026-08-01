@@ -113,7 +113,7 @@ export function Navigation() {
             {user && (
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="flex items-center gap-2 rounded-lg border border-indigo-300/50 bg-white/70 px-2.5 py-1.5 text-[12px] text-slate-500 backdrop-blur-md transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/40 dark:hover:bg-white/[0.07] sm:px-3"
+                className="flex h-8 w-8 items-center justify-center gap-2 rounded-lg border border-indigo-300/50 bg-white/70 text-[12px] text-slate-500 backdrop-blur-md transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/40 dark:hover:bg-white/[0.07] sm:h-auto sm:w-auto sm:px-3 sm:py-1.5"
                 title="Buscar preguntas (Ctrl+K)"
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

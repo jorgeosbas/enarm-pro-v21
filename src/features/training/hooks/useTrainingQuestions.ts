@@ -38,6 +38,10 @@ export function useTrainingQuestions(count: number) {
       const userId = user.id;
 
       // ── 1. Traer todas las preguntas del banco (con importance) ──────────
+      // Banco Compartido: se trae TODO el banco, no solo las preguntas que
+      // importó este usuario. Antes filtraba por user_id = dueño de la
+      // pregunta, así que un usuario nuevo (sin preguntas propias) nunca
+      // recibía preguntas en el modo Entrenamiento Inteligente.
       const { data: questionsRaw, error: qError } = await supabase
         .from('questions')
         .select(`
@@ -52,7 +56,6 @@ export function useTrainingQuestions(count: number) {
           subcategory:subcategories(id, name, specialty:specialties(id, name)),
           theme:themes(id, name)
         `)
-        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (qError) throw qError;

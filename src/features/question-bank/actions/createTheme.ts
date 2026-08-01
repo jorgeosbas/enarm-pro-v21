@@ -21,12 +21,13 @@ export async function createThemeAction(
     return { success: false, error: 'No hay sesión activa.' };
   }
 
-  // Verificar que la subcategoría pertenece al usuario
+  // Banco Compartido: solo se verifica que la subcategoría exista (puede
+  // haber sido creada por cualquier amigo), ya no que le pertenezca a
+  // quien está creando el tema.
   const { data: subcategoryCheck, error: subcatError } = await supabase
     .from('subcategories')
     .select('id')
     .eq('id', subcategoryId)
-    .eq('user_id', user.id)
     .single();
 
   if (subcatError || !subcategoryCheck) {

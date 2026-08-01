@@ -61,10 +61,13 @@ export function useDashboardStats() {
         .gte('reps', 3);
 
       // ── 3. Total preguntas ────────────────────────────────────────────────
+      // Banco Compartido: el conteo es del banco completo, no solo de las
+      // preguntas que importó este usuario. Antes filtraba por user_id, por
+      // lo que un usuario nuevo veía siempre "0 preguntas importadas" aunque
+      // el banco ya tuviera contenido.
       const { count: totalQuestions } = await supabase
         .from('questions')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId);
+        .select('id', { count: 'exact', head: true });
 
       // ── 4. Answer logs — query simple sin joins anidados ──────────────────
       // Separamos en dos queries para evitar el error 400 de Supabase

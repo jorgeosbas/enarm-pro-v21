@@ -40,7 +40,7 @@ export function AuthStatus() {
     <Link
       href="/perfil"
       title="Ir a perfil"
-      className="flex items-center gap-2 rounded-lg border border-indigo-300/50 bg-white/70 px-1.5 py-1.5 backdrop-blur-md transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.07] sm:px-3"
+      className="flex h-8 w-8 items-center justify-center gap-2 rounded-lg border border-indigo-300/50 bg-white/70 backdrop-blur-md transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.07] sm:h-auto sm:w-auto sm:px-3 sm:py-1.5"
     >
       <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-[11px] font-bold text-white">
         {initial}

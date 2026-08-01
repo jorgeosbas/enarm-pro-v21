@@ -17,31 +17,29 @@ export async function deleteSubcategoryAction(subcategoryId: string): Promise<{
     return { success: false, error: 'No hay sesión activa.' };
   }
 
-  // Verificar que pertenece al usuario
+  // Banco Compartido: solo se verifica que la subcategoría exista, ya no
+  // que le pertenezca a quien la está borrando.
   const { data: subcategory, error: fetchError } = await supabase
     .from('subcategories')
     .select('id')
     .eq('id', subcategoryId)
-    .eq('user_id', user.id)
     .single();
 
   if (fetchError || !subcategory) {
     return { success: false, error: 'Subcategoría no encontrada.' };
   }
 
-  // Contar cuántas preguntas se van a eliminar
+  // Contar cuántas preguntas se van a eliminar (del banco completo, no solo las del usuario)
   const { count: questionCount } = await supabase
     .from('questions')
     .select('id', { count: 'exact' })
-    .eq('subcategory_id', subcategoryId)
-    .eq('user_id', user.id);
+    .eq('subcategory_id', subcategoryId);
 
   // Eliminar (cascade elimina preguntas, opciones y temas)
   const { error: deleteError } = await supabase
     .from('subcategories')
     .delete()
-    .eq('id', subcategoryId)
-    .eq('user_id', user.id);
+    .eq('id', subcategoryId);
 
   if (deleteError) {
     return { success: false, error: `Error al eliminar: ${deleteError.message}` };
@@ -65,31 +63,29 @@ export async function deleteThemeAction(themeId: string): Promise<{
     return { success: false, error: 'No hay sesión activa.' };
   }
 
-  // Verificar que pertenece al usuario
+  // Banco Compartido: solo se verifica que el tema exista, ya no que le
+  // pertenezca a quien lo está borrando.
   const { data: theme, error: fetchError } = await supabase
     .from('themes')
     .select('id')
     .eq('id', themeId)
-    .eq('user_id', user.id)
     .single();
 
   if (fetchError || !theme) {
     return { success: false, error: 'Tema no encontrado.' };
   }
 
-  // Contar cuántas preguntas se van a eliminar
+  // Contar cuántas preguntas se van a eliminar (del banco completo, no solo las del usuario)
   const { count: questionCount } = await supabase
     .from('questions')
     .select('id', { count: 'exact' })
-    .eq('theme_id', themeId)
-    .eq('user_id', user.id);
+    .eq('theme_id', themeId);
 
   // Eliminar (las preguntas van a tener theme_id = null, no se eliminan)
   const { error: deleteError } = await supabase
     .from('themes')
     .delete()
-    .eq('id', themeId)
-    .eq('user_id', user.id);
+    .eq('id', themeId);
 
   if (deleteError) {
     return { success: false, error: `Error al eliminar: ${deleteError.message}` };

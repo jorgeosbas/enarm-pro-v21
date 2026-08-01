@@ -28,25 +28,26 @@ export async function importQuestionsAction(
     return { inserted: 0, failed: 0, errorMessages: ['No hay sesión activa.'] };
   }
 
-  // Validar que la subcategoría pertenece al usuario
+  // Banco Compartido: solo se valida que la subcategoría exista (puede
+  // haber sido creada por cualquier amigo), ya no que le pertenezca a
+  // quien está importando.
   const { data: subcategoryCheck, error: subcatError } = (await supabase
     .from('subcategories')
     .select('id')
     .eq('id', subcategoryId)
-    .eq('user_id', user.id)
     .single()) as { data: any; error: any };
 
   if (subcatError || !subcategoryCheck) {
     return { inserted: 0, failed: 0, errorMessages: ['Subcategoría no válida o no encontrada.'] };
   }
 
-  // Si se proporciona themeId, validar que pertenece al usuario
+  // Si se proporciona themeId, validar que exista y pertenezca a esta subcategoría
+  // (ya no que pertenezca al usuario que importa).
   if (themeId) {
     const { data: themeCheck, error: themeError } = (await supabase
       .from('themes')
       .select('id')
       .eq('id', themeId)
-      .eq('user_id', user.id)
       .eq('subcategory_id', subcategoryId)
       .single()) as { data: any; error: any };
 
@@ -55,7 +56,10 @@ export async function importQuestionsAction(
     }
   }
 
-  // Obtener el siguiente sequence_number para este usuario
+  // Obtener el siguiente sequence_number para este usuario.
+  // Se mantiene scoped a user.id porque la restricción unique(user_id, sequence_number)
+  // en la base de datos sigue siendo por usuario, no del banco completo — cada
+  // quien tiene su propio contador de secuencia al importar.
   const { data: maxSeqData } = (await supabase
     .from('questions')
     .select('sequence_number')
