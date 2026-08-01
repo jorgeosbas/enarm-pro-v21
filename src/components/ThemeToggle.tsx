@@ -13,7 +13,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="flex h-8 w-8 items-center justify-center rounded-lg border border-indigo-200/40 bg-white/60 text-slate-500 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/40 dark:hover:bg-white/[0.07]"
+      className="flex h-8 w-8 items-center justify-center rounded-lg border border-indigo-300/50 bg-white/70 text-slate-600 backdrop-blur-md transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/40 dark:hover:bg-white/[0.07]"
       title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
     >
       {theme === 'dark' ? (

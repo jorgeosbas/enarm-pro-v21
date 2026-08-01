@@ -20,7 +20,7 @@ export function AppSplash({ children }: { children: React.ReactNode }) {
     <>
       {/* Splash */}
       <div
-        className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#f4f3ff] dark:bg-[#0a0a14] transition-opacity duration-500 ${
+        className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#e9e3fb] dark:bg-[#0a0a14] transition-opacity duration-500 ${
           ready ? 'pointer-events-none opacity-0' : 'opacity-100'
         }`}
       >
@@ -56,7 +56,7 @@ export function AppSplash({ children }: { children: React.ReactNode }) {
             <span className="bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-2xl font-medium text-transparent">
               ENARM
             </span>
-            <span className="ml-1.5 text-sm font-medium text-slate-400 dark:text-white/30">Pro</span>
+            <span className="ml-1.5 text-sm font-medium text-slate-500 dark:text-white/30">Pro</span>
           </div>
 
           {/* Dots */}

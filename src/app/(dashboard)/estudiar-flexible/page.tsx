@@ -7,6 +7,7 @@ import { useQuestionsBySpecialty } from '@/features/question-bank/hooks/useQuest
 import { recordAnswerAction } from '@/features/question-bank/actions/recordAnswer';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Navigation } from '@/components/Navigation';
+import { shuffleArray } from '@/lib/utils/shuffle';
 
 export default function EstudiarFlexiblePage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function EstudiarFlexiblePage() {
   const [hasAnswered, setHasAnswered] = useState(false);
   const [saving, setSaving] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
-  const [shakeOption, setShakeOption] = useState(false);
+  const [answerAnim, setAnswerAnim] = useState<'correct' | 'wrong' | null>(null);
 
   const { data: questionsBySpecialty, isLoading: loadingSpecialty } =
     useQuestionsBySpecialty(specialtyId && !subcategoryId ? specialtyId : null);
@@ -41,12 +42,22 @@ export default function EstudiarFlexiblePage() {
   const questions = isFinite(requestedCount) ? allQuestions.slice(0, requestedCount) : allQuestions;
   const isLoading = loadingSubcategory || loadingSpecialty;
 
+  // Garantizar que currentQuestion no sea undefined para TypeScript
+  const currentQuestion = (questions[currentIndex] || questions[0]) as any;
+
+  // Aleatoriza el orden de las opciones — se recalcula solo cuando cambia la pregunta.
+  // La corrección siempre compara por option.id / option.is_correct, nunca por posición.
+  const shuffledOptions = useMemo(
+    () => shuffleArray(currentQuestion?.options ?? []),
+    [currentQuestion?.id]
+  );
+
   if (!specialtyId) {
     return (
-      <div className="relative min-h-screen bg-[#f4f3ff] dark:bg-[#0a0a14]">
+      <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
         <div className="relative z-10"><Navigation /></div>
         <div className="relative z-10 flex items-center justify-center pt-32">
-          <p className="text-[13px] text-slate-400">Parámetros inválidos.</p>
+          <p className="text-[13px] text-slate-500">Parámetros inválidos.</p>
         </div>
       </div>
     );
@@ -56,11 +67,11 @@ export default function EstudiarFlexiblePage() {
 
   if (!questions || questions.length === 0) {
     return (
-      <div className="relative min-h-screen bg-[#f4f3ff] dark:bg-[#0a0a14]">
+      <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
         <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
         <div className="relative z-10"><Navigation /></div>
         <div className="relative z-10 flex flex-col items-center justify-center px-4 pt-32 gap-4">
-          <p className="text-[13px] text-slate-400 dark:text-white/40">No hay preguntas disponibles en esta selección.</p>
+          <p className="text-[13px] text-slate-500 dark:text-white/40">No hay preguntas disponibles en esta selección.</p>
           <button onClick={() => router.push('/dashboard')} className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-[13px] text-white">
             Volver al dashboard
           </button>
@@ -69,8 +80,6 @@ export default function EstudiarFlexiblePage() {
     );
   }
 
-  // Garantizar que currentQuestion no sea undefined para TypeScript
-  const currentQuestion = (questions[currentIndex] || questions[0]) as any;
   const selectedOption = currentQuestion?.options?.find((o: any) => o.id === selectedOptionId);
   const isCorrect = selectedOption?.is_correct ?? false;
   const progress = currentIndex + 1;
@@ -81,8 +90,13 @@ export default function EstudiarFlexiblePage() {
     setSaving(true);
     try {
       await recordAnswerAction(currentQuestion.id, selectedOptionId, isCorrect);
-      if (isCorrect) setCorrectCount((prev) => prev + 1);
-      else { setShakeOption(true); setTimeout(() => setShakeOption(false), 450); }
+      if (isCorrect) {
+        setCorrectCount((prev) => prev + 1);
+        setAnswerAnim('correct');
+      } else {
+        setAnswerAnim('wrong');
+      }
+      setTimeout(() => setAnswerAnim(null), 450);
       setHasAnswered(true);
     } catch (err) {
       console.error('Error saving answer:', err);
@@ -106,7 +120,7 @@ export default function EstudiarFlexiblePage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#f4f3ff] dark:bg-[#0a0a14]">
+    <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
       <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
 
@@ -118,13 +132,13 @@ export default function EstudiarFlexiblePage() {
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[13px] font-medium text-[#1e1b4b] dark:text-white/80">
               Pregunta {progress} de {total}
-              <span className="ml-1.5 text-slate-400 dark:text-white/30">#{currentQuestion?.sequence_number ?? ''}</span>
+              <span className="ml-1.5 text-slate-500 dark:text-white/30">#{currentQuestion?.sequence_number ?? ''}</span>
             </span>
-            <span className="text-[12px] text-slate-400 dark:text-white/35">
+            <span className="text-[12px] text-slate-500 dark:text-white/35">
               Aciertos: {correctCount}/{progress - 1 > 0 ? progress - 1 : 0}
             </span>
           </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-indigo-100/60 dark:bg-white/[0.08]">
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-indigo-100/70 dark:bg-white/[0.08]">
             <div className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-400 transition-all" style={{ width: `${(progress / total) * 100}%` }} />
           </div>
         </div>
@@ -132,35 +146,36 @@ export default function EstudiarFlexiblePage() {
         {/* Chips */}
         <div className="mb-5 flex flex-wrap items-center gap-2">
           {currentQuestion?.subcategory?.specialty?.name && (
-            <span className="rounded-full border border-indigo-200/50 bg-indigo-100/60 px-3 py-1 text-[12px] text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-500/15 dark:text-indigo-300">
+            <span className="rounded-full border border-indigo-300/50 bg-indigo-100/60 px-3 py-1 text-[12px] text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-500/15 dark:text-indigo-300">
               {currentQuestion.subcategory.specialty.name}
             </span>
           )}
           {currentQuestion?.subcategory?.name && (
-            <span className="rounded-full border border-indigo-200/40 bg-white/60 px-3 py-1 text-[12px] text-slate-600 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
+            <span className="rounded-full border border-indigo-300/50 bg-white/70 px-3 py-1 text-[12px] text-slate-700 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
               {currentQuestion.subcategory.name}
             </span>
           )}
           {currentQuestion?.theme?.name && (
-            <span className="rounded-full border border-amber-200/50 bg-amber-50/60 px-3 py-1 text-[12px] text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-300">
+            <span className="rounded-full border border-amber-300/50 bg-amber-100/60 px-3 py-1 text-[12px] text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-300">
               {currentQuestion.theme.name}
             </span>
           )}
         </div>
 
         {/* Viñeta */}
-        <div className="mb-5 rounded-2xl border border-indigo-200/40 bg-white/60 p-6 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
+        <div className="mb-5 rounded-2xl border border-indigo-300/50 bg-white/70 p-6 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
           <p className="text-[15px] leading-relaxed text-[#1e1b4b] dark:text-white/90">
             {currentQuestion?.vignette}
           </p>
         </div>
 
         {/* Opciones */}
-        <div className={`mb-5 space-y-2.5 ${shakeOption ? 'animate-shake' : ''}`}>
-          {currentQuestion?.options?.map((option: any) => {
+        <div className={`mb-5 space-y-2.5 ${answerAnim === 'wrong' ? 'animate-shake' : answerAnim === 'correct' ? 'animate-bounce-in' : ''}`}>
+          {shuffledOptions.map((option: any, idx: number) => {
             const selected = selectedOptionId === option.id;
             const showAsCorrect = hasAnswered && option.is_correct;
             const showAsIncorrect = hasAnswered && selected && !option.is_correct;
+            const displayLabel = String.fromCharCode(65 + idx);
             return (
               <button
                 key={option.id}
@@ -170,7 +185,7 @@ export default function EstudiarFlexiblePage() {
                   showAsCorrect ? 'border-emerald-400/50 bg-emerald-50/70 dark:border-emerald-400/30 dark:bg-emerald-500/10'
                   : showAsIncorrect ? 'border-rose-400/50 bg-rose-50/70 dark:border-rose-400/30 dark:bg-rose-500/10'
                   : selected && !hasAnswered ? 'border-indigo-400/50 bg-indigo-50/70 dark:border-indigo-400/30 dark:bg-indigo-500/10'
-                  : 'border-indigo-200/40 bg-white/60 hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.07]'
+                  : 'border-indigo-300/50 bg-white/70 hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.07]'
                 } ${hasAnswered ? 'cursor-default' : 'cursor-pointer'}`}
               >
                 <div className="flex items-start gap-4">
@@ -178,13 +193,13 @@ export default function EstudiarFlexiblePage() {
                     showAsCorrect ? 'border-emerald-500 bg-emerald-500 text-white'
                     : showAsIncorrect ? 'border-rose-500 bg-rose-500 text-white'
                     : selected && !hasAnswered ? 'border-indigo-500 bg-indigo-500 text-white'
-                    : 'border-indigo-200 dark:border-white/20'
+                    : 'border-indigo-300 dark:border-white/20'
                   }`}>
                     {(showAsCorrect || (selected && !hasAnswered)) && '✓'}
                     {showAsIncorrect && '✗'}
                   </div>
                   <div className="flex-1">
-                    <p className="text-[13px] font-medium text-[#1e1b4b] dark:text-white/80">{option.label})</p>
+                    <p className="text-[13px] font-medium text-[#1e1b4b] dark:text-white/80">{displayLabel})</p>
                     <p className="mt-1 text-[14px] text-slate-700 dark:text-white/65">{option.content}</p>
                   </div>
                 </div>
@@ -195,15 +210,15 @@ export default function EstudiarFlexiblePage() {
 
         {/* Explicación */}
         {hasAnswered && currentQuestion?.explanation && (
-          <div className="mb-4 rounded-xl border border-indigo-300/30 bg-indigo-50/60 p-5 backdrop-blur-md dark:border-indigo-400/20 dark:bg-indigo-500/[0.08]">
-            <p className="mb-1 text-[12px] font-medium uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Explicación</p>
+          <div className="mb-4 rounded-xl border border-indigo-300/45 bg-indigo-100/55 p-5 backdrop-blur-md dark:border-indigo-400/20 dark:bg-indigo-500/[0.08]">
+            <p className="mb-1 text-[12px] font-medium uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Explicación</p>
             <p className="text-[14px] leading-relaxed text-slate-700 dark:text-white/70">{currentQuestion.explanation}</p>
           </div>
         )}
 
         {/* Resultado */}
         {hasAnswered && (
-          <div className={`mb-5 rounded-xl border p-4 backdrop-blur-md animate-slide-up ${isCorrect ? 'border-emerald-300/40 bg-emerald-50/60 dark:border-emerald-400/20 dark:bg-emerald-500/10' : 'border-rose-300/40 bg-rose-50/60 dark:border-rose-400/20 dark:bg-rose-500/10'}`}>
+          <div className={`mb-5 rounded-xl border p-4 backdrop-blur-md animate-slide-up ${isCorrect ? 'border-emerald-300/50 bg-emerald-100/55 dark:border-emerald-400/20 dark:bg-emerald-500/10' : 'border-rose-300/50 bg-rose-100/55 dark:border-rose-400/20 dark:bg-rose-500/10'}`}>
             <p className={`text-[15px] font-medium ${isCorrect ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
               {isCorrect ? '✓ ¡Correcto!' : '✗ Incorrecto'}
             </p>
@@ -224,7 +239,7 @@ export default function EstudiarFlexiblePage() {
             </button>
           )}
           <button onClick={() => router.push('/dashboard')}
-            className="rounded-xl border border-indigo-200/40 bg-white/60 px-5 py-3 text-[14px] text-slate-600 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
+            className="rounded-xl border border-indigo-300/50 bg-white/65 px-5 py-3 text-[14px] text-slate-700 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
             Salir
           </button>
         </div>

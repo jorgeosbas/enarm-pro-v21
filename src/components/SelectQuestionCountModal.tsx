@@ -47,7 +47,7 @@ export function SelectQuestionCountModal({
       <div className="fixed inset-0 z-[9998] bg-black/50 backdrop-blur-sm animate-fade-in" onClick={onClose} />
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
         <div
-          className="pointer-events-auto w-full max-w-md rounded-2xl border border-indigo-200/40 bg-white/85 p-6 backdrop-blur-xl dark:border-white/[0.1] dark:bg-[#0f0f1a]/95 animate-scale-in"
+          className="pointer-events-auto w-full max-w-md rounded-2xl border border-indigo-300/50 bg-white/90 p-6 backdrop-blur-xl dark:border-white/[0.1] dark:bg-[#0f0f1a]/95 animate-scale-in"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -60,7 +60,7 @@ export function SelectQuestionCountModal({
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1 text-slate-400 transition-colors hover:text-slate-600 dark:text-white/40 dark:hover:text-white/70"
+              className="rounded-lg p-1 text-slate-500 transition-colors hover:text-slate-700 dark:text-white/40 dark:hover:text-white/70"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -68,11 +68,11 @@ export function SelectQuestionCountModal({
             </button>
           </div>
 
-          <p className="mb-5 text-[13px] text-slate-400 dark:text-white/40">{description}</p>
+          <p className="mb-5 text-[13px] text-slate-500 dark:text-white/40">{description}</p>
 
           {/* Input de cantidad */}
           <div className="mb-6">
-            <label className="mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-400 dark:text-white/35">
+            <label className="mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-500 dark:text-white/35">
               Número de preguntas
             </label>
             <input
@@ -81,9 +81,9 @@ export function SelectQuestionCountModal({
               max={maxQuestions}
               value={questionCount}
               onChange={(e) => setQuestionCount(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full rounded-xl border border-indigo-200/40 bg-white/70 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
+              className="w-full rounded-xl border border-indigo-300/50 bg-white/75 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
             />
-            <p className="mt-1.5 text-[11px] text-slate-400 dark:text-white/25">
+            <p className="mt-1.5 text-[11px] text-slate-500 dark:text-white/25">
               Tienes {maxQuestions} preguntas disponibles
             </p>
           </div>
@@ -98,7 +98,7 @@ export function SelectQuestionCountModal({
             </button>
             <button
               onClick={onClose}
-              className="rounded-xl border border-indigo-200/40 bg-white/60 px-5 py-2.5 text-[14px] text-slate-600 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50"
+              className="rounded-xl border border-indigo-300/50 bg-white/65 px-5 py-2.5 text-[14px] text-slate-700 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50"
             >
               Cancelar
             </button>

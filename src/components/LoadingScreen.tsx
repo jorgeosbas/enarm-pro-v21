@@ -8,7 +8,7 @@ interface LoadingScreenProps {
 
 export function LoadingScreen({ message = 'Cargando...' }: LoadingScreenProps) {
   return (
-    <div className="relative min-h-screen bg-[#f4f3ff] dark:bg-[#0a0a14]">
+    <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
       <div
         className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18"
         style={{ filter: 'blur(90px)' }}
@@ -34,7 +34,7 @@ export function LoadingScreen({ message = 'Cargando...' }: LoadingScreenProps) {
         </div>
 
         {/* Card */}
-        <div className="animate-slide-up rounded-2xl border border-indigo-200/40 bg-white/60 px-8 py-5 text-center backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
+        <div className="animate-slide-up rounded-2xl border border-indigo-300/50 bg-white/70 px-8 py-5 text-center backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
           <p className="mb-4 text-[14px] font-medium text-[#1e1b4b] dark:text-white/80">{message}</p>
           <div className="flex items-center justify-center gap-2">
             <span className="dot-1 h-2 w-2 rounded-full bg-indigo-400 dark:bg-indigo-500" />

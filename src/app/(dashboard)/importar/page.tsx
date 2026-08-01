@@ -82,11 +82,11 @@ export default function ImportarPage() {
     }
   }
 
-  const lbl = 'mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-400 dark:text-white/35';
-  const cardBase = 'rounded-xl border border-indigo-200/40 bg-white/60 p-5 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]';
+  const lbl = 'mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-500 dark:text-white/35';
+  const cardBase = 'rounded-xl border border-indigo-300/50 bg-white/70 p-5 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]';
 
   return (
-    <div className="relative min-h-screen bg-[#f4f3ff] dark:bg-[#0a0a14]">
+    <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
       <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
 
@@ -95,7 +95,7 @@ export default function ImportarPage() {
       <main className="relative z-10 mx-auto max-w-4xl px-4 pb-24 pt-8 md:pb-10 lg:px-6">
         <div className="mb-6">
           <h1 className="text-[18px] font-medium text-[#1e1b4b] dark:text-white">Importar preguntas</h1>
-          <p className="mt-1 text-[13px] text-slate-400 dark:text-white/40">
+          <p className="mt-1 text-[13px] text-slate-500 dark:text-white/40">
             Selecciona especialidad, subcategoría y tema, luego pega tus preguntas.
           </p>
         </div>
@@ -103,12 +103,12 @@ export default function ImportarPage() {
         <div className="space-y-4">
           {/* Selectores de categoría */}
           <div className={cardBase}>
-            <p className="mb-4 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-white/30">
+            <p className="mb-4 text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-white/30">
               Categorización
             </p>
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
-                <label className={lbl}>Especialidad <span className="text-rose-400">*</span></label>
+                <label className={lbl}>Especialidad <span className="text-rose-500">*</span></label>
                 <CustomSelect value={selectedSpecialty} onChange={(e) => { setSelectedSpecialty(e.target.value); setSelectedSubcategory(''); setSelectedTheme(''); }}>
                   <option value="">Selecciona...</option>
                   {(specialties as any[])?.map((spec: any) => <option key={spec.id} value={spec.id}>{spec.name}</option>)}
@@ -116,9 +116,9 @@ export default function ImportarPage() {
               </div>
 
               <div>
-                <label className={lbl}>Subcategoría <span className="text-rose-400">*</span></label>
+                <label className={lbl}>Subcategoría <span className="text-rose-500">*</span></label>
                 {!selectedSpecialty ? (
-                  <div className="rounded-xl border border-indigo-100/40 bg-white/40 px-4 py-2.5 text-[13px] text-slate-300 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
+                  <div className="rounded-xl border border-indigo-200/50 bg-white/50 px-4 py-2.5 text-[13px] text-slate-400 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
                     Elige especialidad primero
                   </div>
                 ) : (
@@ -132,10 +132,10 @@ export default function ImportarPage() {
               <div>
                 <label className={lbl}>
                   Tema
-                  <span className="ml-1.5 rounded-full border border-slate-200 bg-slate-100/60 px-2 py-0.5 text-[10px] normal-case tracking-normal text-slate-400 dark:border-white/10 dark:bg-white/[0.04]">opcional</span>
+                  <span className="ml-1.5 rounded-full border border-slate-300 bg-slate-200/60 px-2 py-0.5 text-[10px] normal-case tracking-normal text-slate-600 dark:border-white/10 dark:bg-white/[0.04]">opcional</span>
                 </label>
                 {!selectedSubcategory ? (
-                  <div className="rounded-xl border border-indigo-100/40 bg-white/40 px-4 py-2.5 text-[13px] text-slate-300 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
+                  <div className="rounded-xl border border-indigo-200/50 bg-white/50 px-4 py-2.5 text-[13px] text-slate-400 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
                     Elige subcategoría primero
                   </div>
                 ) : (
@@ -151,7 +151,7 @@ export default function ImportarPage() {
             <div className="mt-4 flex justify-end">
               <button
                 onClick={() => setCreateModalOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl border border-indigo-200/50 bg-indigo-50/60 px-3 py-1.5 text-[12px] font-medium text-indigo-600 backdrop-blur-md transition-colors hover:bg-indigo-100/60 dark:border-indigo-400/20 dark:bg-indigo-500/10 dark:text-indigo-300"
+                className="flex items-center gap-1.5 rounded-xl border border-indigo-300/60 bg-indigo-100/60 px-3 py-1.5 text-[12px] font-medium text-indigo-700 backdrop-blur-md transition-colors hover:bg-indigo-100/85 dark:border-indigo-400/20 dark:bg-indigo-500/10 dark:text-indigo-300"
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -163,7 +163,7 @@ export default function ImportarPage() {
 
           {/* Área de texto */}
           <div className={cardBase}>
-            <p className="mb-4 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-white/30">
+            <p className="mb-4 text-[11px] font-medium uppercase tracking-wider text-slate-500 dark:text-white/30">
               Preguntas
             </p>
             <textarea
@@ -171,11 +171,11 @@ export default function ImportarPage() {
               onChange={(e) => setText(e.target.value)}
               placeholder={PLACEHOLDER}
               rows={10}
-              className="w-full rounded-xl border border-indigo-200/40 bg-white/70 px-4 py-3 font-mono text-[12px] leading-relaxed text-[#1e1b4b] outline-none transition-colors focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
+              className="w-full rounded-xl border border-indigo-300/50 bg-white/75 px-4 py-3 font-mono text-[12px] leading-relaxed text-[#1e1b4b] outline-none transition-colors focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
             />
             <div className="mt-3 flex gap-2">
               <input ref={fileInputRef} type="file" accept=".txt,.md" onChange={handleFileUpload} className="hidden" />
-              <button onClick={() => fileInputRef.current?.click()} className="rounded-xl border border-indigo-200/40 bg-white/60 px-4 py-2 text-[13px] text-slate-600 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
+              <button onClick={() => fileInputRef.current?.click()} className="rounded-xl border border-indigo-300/50 bg-white/65 px-4 py-2 text-[13px] text-slate-700 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
                 📁 Archivo
               </button>
               <button onClick={handlePreview} disabled={!text} className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40">
@@ -186,8 +186,8 @@ export default function ImportarPage() {
 
           {/* Vista previa */}
           {preview && (
-            <div className="rounded-xl border border-indigo-300/30 bg-indigo-50/60 p-5 backdrop-blur-md dark:border-indigo-400/20 dark:bg-indigo-500/[0.08]">
-              <p className="mb-2 text-[12px] font-medium uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+            <div className="rounded-xl border border-indigo-300/45 bg-indigo-100/55 p-5 backdrop-blur-md dark:border-indigo-400/20 dark:bg-indigo-500/[0.08]">
+              <p className="mb-2 text-[12px] font-medium uppercase tracking-wider text-indigo-700 dark:text-indigo-400">
                 Vista previa
               </p>
               {preview.errors.length > 0 && (
@@ -206,7 +206,7 @@ export default function ImportarPage() {
                 </button>
               )}
               {!selectedSubcategory && (
-                <p className="text-[13px] text-indigo-500 dark:text-indigo-400">
+                <p className="text-[13px] text-indigo-600 dark:text-indigo-400">
                   Selecciona una subcategoría arriba para importar.
                 </p>
               )}
@@ -215,15 +215,15 @@ export default function ImportarPage() {
 
           {/* Resultado */}
           {summary && (
-            <div className={`p-5 ${summary.inserted > 0 ? 'rounded-xl border border-emerald-300/40 bg-emerald-50/60 backdrop-blur-md dark:border-emerald-400/20 dark:bg-emerald-500/[0.07]' : 'rounded-xl border border-rose-300/40 bg-rose-50/60 backdrop-blur-md dark:border-rose-400/20 dark:bg-rose-500/[0.07]'}`}>
+            <div className={`p-5 ${summary.inserted > 0 ? 'rounded-xl border border-emerald-300/50 bg-emerald-100/55 backdrop-blur-md dark:border-emerald-400/20 dark:bg-emerald-500/[0.07]' : 'rounded-xl border border-rose-300/50 bg-rose-100/55 backdrop-blur-md dark:border-rose-400/20 dark:bg-rose-500/[0.07]'}`}>
               <p className={`mb-1 text-[14px] font-medium ${summary.inserted > 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
                 {summary.inserted > 0 ? '✓ Importación exitosa' : '❌ Sin preguntas importadas'}
               </p>
-              <p className="text-[13px] text-slate-600 dark:text-white/50">
+              <p className="text-[13px] text-slate-700 dark:text-white/50">
                 {summary.inserted} importadas · {summary.failed} error(es)
               </p>
               {summary.errorMessages.slice(0, 3).map((msg, i) => (
-                <p key={i} className="mt-1 text-[12px] text-slate-500 dark:text-white/35">• {msg}</p>
+                <p key={i} className="mt-1 text-[12px] text-slate-600 dark:text-white/35">• {msg}</p>
               ))}
             </div>
           )}

@@ -13,14 +13,14 @@ export function AuthStatus() {
   useEffect(() => { setMounted(true); }, []);
 
   if (!mounted || loading) {
-    return <div className="h-8 w-28 animate-pulse rounded-lg bg-indigo-100/40 dark:bg-white/[0.05]" />;
+    return <div className="h-8 w-28 animate-pulse rounded-lg bg-indigo-100/50 dark:bg-white/[0.05]" />;
   }
 
   if (!user) {
     return (
       <Link
         href="/login"
-        className="rounded-lg border border-indigo-200/40 bg-white/60 px-4 py-1.5 text-[13px] font-medium text-indigo-600 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-indigo-400 dark:hover:bg-white/[0.07]"
+        className="rounded-lg border border-indigo-300/50 bg-white/70 px-4 py-1.5 text-[13px] font-medium text-indigo-600 backdrop-blur-md transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-indigo-400 dark:hover:bg-white/[0.07]"
       >
         Iniciar sesión
       </Link>
@@ -40,7 +40,7 @@ export function AuthStatus() {
     <Link
       href="/perfil"
       title="Ir a perfil"
-      className="flex items-center gap-2 rounded-lg border border-indigo-200/40 bg-white/60 px-3 py-1.5 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.07]"
+      className="flex items-center gap-2 rounded-lg border border-indigo-300/50 bg-white/70 px-3 py-1.5 backdrop-blur-md transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.07]"
     >
       <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-[11px] font-bold text-white">
         {initial}

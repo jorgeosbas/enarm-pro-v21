@@ -61,11 +61,11 @@ export default function BancoPreguntas() {
     ? subcategoriesList.find((s) => s.id === selectedSubcategory) || null
     : null;
 
-  const inp = 'w-full rounded-xl border border-indigo-200/40 bg-white/70 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none transition-colors focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400';
-  const lbl = 'mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-400 dark:text-white/35';
+  const inp = 'w-full rounded-xl border border-indigo-300/50 bg-white/75 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none transition-colors focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400';
+  const lbl = 'mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-500 dark:text-white/35';
 
   return (
-    <div className="relative min-h-screen bg-[#f4f3ff] dark:bg-[#0a0a14]">
+    <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
       <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
       <div className="pointer-events-none fixed bottom-[20px] left-[160px] h-[220px] w-[220px] rounded-full bg-cyan-400/12 dark:bg-cyan-400/10" style={{ filter: 'blur(70px)' }} />
@@ -75,18 +75,18 @@ export default function BancoPreguntas() {
       <main className="relative z-10 mx-auto max-w-5xl px-4 pb-24 pt-8 md:pb-10 lg:px-6">
         <div className="mb-6">
           <h1 className="text-[18px] font-medium text-[#1e1b4b] dark:text-white">Banco de preguntas</h1>
-          <p className="mt-1 text-[13px] text-slate-400 dark:text-white/40">
+          <p className="mt-1 text-[13px] text-slate-500 dark:text-white/40">
             Filtra por especialidad, subcategoría y tema para explorar tu banco.
           </p>
         </div>
 
         {/* Filtros */}
-        <div className="mb-5 rounded-xl border border-indigo-200/40 bg-white/60 p-5 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
+        <div className="mb-5 rounded-xl border border-indigo-300/50 bg-white/70 p-5 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
           <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <label className={lbl}>Especialidad</label>
               {specialtiesLoading ? (
-                <div className="h-10 animate-pulse rounded-xl bg-indigo-100/40 dark:bg-white/[0.05]" />
+                <div className="h-10 animate-pulse rounded-xl bg-indigo-100/50 dark:bg-white/[0.05]" />
               ) : (
                 <CustomSelect value={selectedSpecialty} onChange={(e) => { setSelectedSpecialty(e.target.value); setSelectedSubcategory(''); setSelectedTheme(''); }}>
                   <option value="">Todas las especialidades</option>
@@ -98,11 +98,11 @@ export default function BancoPreguntas() {
             <div>
               <label className={lbl}>Subcategoría</label>
               {!selectedSpecialty ? (
-                <div className="rounded-xl border border-indigo-100/40 bg-white/40 px-4 py-2.5 text-[13px] text-slate-300 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
+                <div className="rounded-xl border border-indigo-200/50 bg-white/50 px-4 py-2.5 text-[13px] text-slate-400 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
                   Elige especialidad primero
                 </div>
               ) : subcatsLoading ? (
-                <div className="h-10 animate-pulse rounded-xl bg-indigo-100/40 dark:bg-white/[0.05]" />
+                <div className="h-10 animate-pulse rounded-xl bg-indigo-100/50 dark:bg-white/[0.05]" />
               ) : (
                 <CustomSelect value={selectedSubcategory} onChange={(e) => { setSelectedSubcategory(e.target.value); setSelectedTheme(''); }}>
                   <option value="">Todas las subcategorías</option>
@@ -114,10 +114,10 @@ export default function BancoPreguntas() {
             <div>
               <label className={lbl}>
                 Tema
-                <span className="ml-1.5 rounded-full border border-slate-200 bg-slate-100/60 px-2 py-0.5 text-[10px] normal-case tracking-normal text-slate-400 dark:border-white/10 dark:bg-white/[0.04]">opcional</span>
+                <span className="ml-1.5 rounded-full border border-slate-300 bg-slate-200/60 px-2 py-0.5 text-[10px] normal-case tracking-normal text-slate-600 dark:border-white/10 dark:bg-white/[0.04]">opcional</span>
               </label>
               {!selectedSubcategory ? (
-                <div className="rounded-xl border border-indigo-100/40 bg-white/40 px-4 py-2.5 text-[13px] text-slate-300 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
+                <div className="rounded-xl border border-indigo-200/50 bg-white/50 px-4 py-2.5 text-[13px] text-slate-400 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
                   Elige subcategoría primero
                 </div>
               ) : (
@@ -134,7 +134,7 @@ export default function BancoPreguntas() {
           {selectedSubcategory && (
             <div className="mt-4">
               <div className="relative">
-                <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500 dark:text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
                 <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Buscar en esta subcategoría..." className={`${inp} pl-9`} />
@@ -145,9 +145,9 @@ export default function BancoPreguntas() {
 
         {/* Estado: sin subcategoría */}
         {!selectedSubcategory && (
-          <div className="rounded-xl border border-indigo-200/40 bg-white/60 p-10 text-center backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
+          <div className="rounded-xl border border-indigo-300/50 bg-white/70 p-10 text-center backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
             <div className="mb-3 text-3xl">📚</div>
-            <p className="text-[14px] text-slate-500 dark:text-white/35">
+            <p className="text-[14px] text-slate-600 dark:text-white/35">
               Selecciona una subcategoría para ver las preguntas.
             </p>
           </div>
@@ -155,23 +155,23 @@ export default function BancoPreguntas() {
 
         {/* Estado: cargando */}
         {selectedSubcategory && questionsLoading && (
-          <div className="rounded-xl border border-indigo-200/40 bg-white/60 p-10 text-center backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
-            <p className="text-[13px] text-slate-400 dark:text-white/30">Cargando preguntas...</p>
+          <div className="rounded-xl border border-indigo-300/50 bg-white/70 p-10 text-center backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
+            <p className="text-[13px] text-slate-500 dark:text-white/30">Cargando preguntas...</p>
           </div>
         )}
 
         {/* Estado: error */}
         {error && (
-          <div className="rounded-xl border border-rose-300/40 bg-rose-50/60 p-5 backdrop-blur-md dark:border-rose-400/20 dark:bg-rose-500/[0.07]">
+          <div className="rounded-xl border border-rose-300/50 bg-rose-100/55 p-5 backdrop-blur-md dark:border-rose-400/20 dark:bg-rose-500/[0.07]">
             <p className="text-[13px] text-rose-700 dark:text-rose-300">Error al cargar las preguntas. Intenta de nuevo.</p>
           </div>
         )}
 
         {/* Estado: sin preguntas */}
         {selectedSubcategory && !questionsLoading && displayQuestions && displayQuestions.length === 0 && (
-          <div className="rounded-xl border border-indigo-200/40 bg-white/60 p-10 text-center backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
+          <div className="rounded-xl border border-indigo-300/50 bg-white/70 p-10 text-center backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
             <div className="mb-3 text-3xl">📭</div>
-            <p className="mb-4 text-[14px] text-slate-500 dark:text-white/35">
+            <p className="mb-4 text-[14px] text-slate-600 dark:text-white/35">
               No hay preguntas en "{currentSubcategory?.name}".
             </p>
             <Link href="/importar" className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-[13px] font-medium text-white transition-opacity hover:opacity-90">
@@ -194,7 +194,7 @@ export default function BancoPreguntas() {
 
             <div className="space-y-2 animate-slide-up">
               {displayQuestions.map((question: any) => (
-                <div key={question.id} className="flex items-center gap-3 rounded-xl border border-indigo-200/40 bg-white/60 p-4 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.07]">
+                <div key={question.id} className="flex items-center gap-3 rounded-xl border border-indigo-300/50 bg-white/70 p-4 backdrop-blur-md transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.07]">
                   <Link href={`/estudiar/${question.id}`} className="flex-1 min-w-0">
                     <div className="mb-1.5 flex flex-wrap items-center gap-2">
                       <span className="rounded-full bg-indigo-100/80 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
@@ -221,7 +221,7 @@ export default function BancoPreguntas() {
                   <button
                     onClick={(e) => handleDeleteQuestion(e, question.id)}
                     disabled={deletingId === question.id}
-                    className="flex-shrink-0 rounded-xl border border-rose-200/40 bg-rose-50/60 p-2 text-rose-500 transition-colors hover:bg-rose-100/60 disabled:opacity-40 dark:border-rose-400/20 dark:bg-rose-500/[0.07] dark:text-rose-400"
+                    className="flex-shrink-0 rounded-xl border border-rose-300/50 bg-rose-100/55 p-2 text-rose-500 transition-colors hover:bg-rose-100/80 disabled:opacity-40 dark:border-rose-400/20 dark:bg-rose-500/[0.07] dark:text-rose-400"
                     title="Eliminar pregunta"
                   >
                     {deletingId === question.id ? (

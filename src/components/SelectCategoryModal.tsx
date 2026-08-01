@@ -62,7 +62,7 @@ export function SelectCategoryModal({ isOpen, onClose }: SelectCategoryModalProp
       {/* Panel */}
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
         <div
-          className="pointer-events-auto w-full max-w-md rounded-2xl border border-indigo-200/40 bg-white/80 p-6 backdrop-blur-xl dark:border-white/[0.1] dark:bg-[#0f0f1a]/90 animate-scale-in"
+          className="pointer-events-auto w-full max-w-md rounded-2xl border border-indigo-300/50 bg-white/90 p-6 backdrop-blur-xl dark:border-white/[0.1] dark:bg-[#0f0f1a]/90 animate-scale-in"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Título */}
@@ -72,7 +72,7 @@ export function SelectCategoryModal({ isOpen, onClose }: SelectCategoryModalProp
             </h2>
             <button
               onClick={onClose}
-              className="rounded-lg p-1 text-slate-400 hover:text-slate-600 dark:text-white/40 dark:hover:text-white/70"
+              className="rounded-lg p-1 text-slate-500 hover:text-slate-700 dark:text-white/40 dark:hover:text-white/70"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -82,8 +82,8 @@ export function SelectCategoryModal({ isOpen, onClose }: SelectCategoryModalProp
 
           {/* Especialidad — OBLIGATORIA */}
           <div className="mb-4">
-            <label className="mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-400 dark:text-white/35">
-              Especialidad <span className="text-rose-400">*</span>
+            <label className="mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-500 dark:text-white/35">
+              Especialidad <span className="text-rose-500">*</span>
             </label>
             <CustomSelect
               value={selectedSpecialty}
@@ -92,7 +92,7 @@ export function SelectCategoryModal({ isOpen, onClose }: SelectCategoryModalProp
                 setSelectedSubcategory('');
                 setSelectedTheme('');
               }}
-              className="w-full rounded-xl border border-indigo-200/40 bg-white/70 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
+              className="w-full rounded-xl border border-indigo-300/50 bg-white/75 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
             >
               <option value="">Selecciona una especialidad...</option>
               {(specialties as any[])?.map((spec: any) => (
@@ -103,14 +103,14 @@ export function SelectCategoryModal({ isOpen, onClose }: SelectCategoryModalProp
 
           {/* Subcategoría — OPCIONAL */}
           <div className="mb-4">
-            <label className="mb-1.5 flex items-center gap-2 text-[12px] font-medium uppercase tracking-wider text-slate-400 dark:text-white/35">
+            <label className="mb-1.5 flex items-center gap-2 text-[12px] font-medium uppercase tracking-wider text-slate-500 dark:text-white/35">
               Subcategoría
-              <span className="rounded-full border border-slate-200 bg-slate-100/60 px-2 py-0.5 text-[10px] normal-case tracking-normal text-slate-400 dark:border-white/10 dark:bg-white/[0.04]">
+              <span className="rounded-full border border-slate-300 bg-slate-200/60 px-2 py-0.5 text-[10px] normal-case tracking-normal text-slate-600 dark:border-white/10 dark:bg-white/[0.04]">
                 opcional
               </span>
             </label>
             {!selectedSpecialty ? (
-              <div className="rounded-xl border border-indigo-100/40 bg-white/40 px-4 py-2.5 text-[13px] text-slate-300 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
+              <div className="rounded-xl border border-indigo-200/50 bg-white/50 px-4 py-2.5 text-[13px] text-slate-400 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
                 Selecciona una especialidad primero
               </div>
             ) : (
@@ -120,7 +120,7 @@ export function SelectCategoryModal({ isOpen, onClose }: SelectCategoryModalProp
                   setSelectedSubcategory(e.target.value);
                   setSelectedTheme('');
                 }}
-                className="w-full rounded-xl border border-indigo-200/40 bg-white/70 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
+                className="w-full rounded-xl border border-indigo-300/50 bg-white/75 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
               >
                 <option value="">Toda la especialidad</option>
                 {(subcategories as any[])?.map((sub: any) => (
@@ -133,21 +133,21 @@ export function SelectCategoryModal({ isOpen, onClose }: SelectCategoryModalProp
           {/* Tema — OPCIONAL, solo si hay subcategoría */}
           {selectedSubcategory && (
             <div className="mb-4">
-              <label className="mb-1.5 flex items-center gap-2 text-[12px] font-medium uppercase tracking-wider text-slate-400 dark:text-white/35">
+              <label className="mb-1.5 flex items-center gap-2 text-[12px] font-medium uppercase tracking-wider text-slate-500 dark:text-white/35">
                 Tema
-                <span className="rounded-full border border-slate-200 bg-slate-100/60 px-2 py-0.5 text-[10px] normal-case tracking-normal text-slate-400 dark:border-white/10 dark:bg-white/[0.04]">
+                <span className="rounded-full border border-slate-300 bg-slate-200/60 px-2 py-0.5 text-[10px] normal-case tracking-normal text-slate-600 dark:border-white/10 dark:bg-white/[0.04]">
                   opcional
                 </span>
               </label>
               {!themes || themes.length === 0 ? (
-                <div className="rounded-xl border border-indigo-100/40 bg-white/40 px-4 py-2.5 text-[13px] text-slate-300 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
+                <div className="rounded-xl border border-indigo-200/50 bg-white/50 px-4 py-2.5 text-[13px] text-slate-400 dark:border-white/[0.05] dark:bg-white/[0.02] dark:text-white/20">
                   Sin temas registrados en esta subcategoría
                 </div>
               ) : (
                 <CustomSelect
                   value={selectedTheme}
                   onChange={(e) => setSelectedTheme(e.target.value)}
-                  className="w-full rounded-xl border border-indigo-200/40 bg-white/70 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
+                  className="w-full rounded-xl border border-indigo-300/50 bg-white/75 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
                 >
                   <option value="">Todos los temas</option>
                   {(themes as any[])?.map((theme: any) => (
@@ -160,7 +160,7 @@ export function SelectCategoryModal({ isOpen, onClose }: SelectCategoryModalProp
 
           {/* Cantidad de preguntas */}
           <div className="mb-6">
-            <label className="mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-400 dark:text-white/35">
+            <label className="mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-500 dark:text-white/35">
               Número de preguntas
             </label>
             <input
@@ -169,9 +169,9 @@ export function SelectCategoryModal({ isOpen, onClose }: SelectCategoryModalProp
               max={200}
               value={questionCount}
               onChange={(e) => setQuestionCount(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full rounded-xl border border-indigo-200/40 bg-white/70 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
+              className="w-full rounded-xl border border-indigo-300/50 bg-white/75 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400"
             />
-            <p className="mt-1 text-[11px] text-slate-400 dark:text-white/25">
+            <p className="mt-1 text-[11px] text-slate-500 dark:text-white/25">
               Si hay menos preguntas disponibles se mostrarán todas.
             </p>
           </div>
@@ -187,7 +187,7 @@ export function SelectCategoryModal({ isOpen, onClose }: SelectCategoryModalProp
             </button>
             <button
               onClick={onClose}
-              className="rounded-xl border border-indigo-200/40 bg-white/60 px-4 py-2.5 text-[14px] text-slate-600 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50"
+              className="rounded-xl border border-indigo-300/50 bg-white/65 px-4 py-2.5 text-[14px] text-slate-700 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50"
             >
               Cancelar
             </button>

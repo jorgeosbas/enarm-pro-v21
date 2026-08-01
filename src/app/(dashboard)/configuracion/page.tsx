@@ -92,12 +92,12 @@ export default function ConfiguracionPage() {
     finally { setIsResettingScore(false); }
   }
 
-  const inp = 'w-full rounded-xl border border-indigo-200/40 bg-white/70 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none transition-colors focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400';
-  const lbl = 'mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-400 dark:text-white/35';
-  const cardBase = 'rounded-xl border border-indigo-200/40 bg-white/60 p-5 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]';
+  const inp = 'w-full rounded-xl border border-indigo-300/50 bg-white/75 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none transition-colors focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400';
+  const lbl = 'mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-500 dark:text-white/35';
+  const cardBase = 'rounded-xl border border-indigo-300/50 bg-white/70 p-5 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]';
 
   return (
-    <div className="relative min-h-screen bg-[#f4f3ff] dark:bg-[#0a0a14]">
+    <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
       <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
 
@@ -106,17 +106,17 @@ export default function ConfiguracionPage() {
       <main className="relative z-10 mx-auto max-w-3xl px-4 pb-24 pt-8 md:pb-10 lg:px-6">
         <div className="mb-6">
           <h1 className="text-[18px] font-medium text-[#1e1b4b] dark:text-white">Configuración</h1>
-          <p className="mt-1 text-[13px] text-slate-400 dark:text-white/40">
+          <p className="mt-1 text-[13px] text-slate-500 dark:text-white/40">
             Gestiona tu progreso y el contenido de la app.
           </p>
         </div>
 
         <div className="space-y-4">
           {/* Reiniciar Flashcards */}
-          <div className="rounded-xl border border-indigo-300/30 bg-indigo-50/60 p-5 backdrop-blur-md dark:border-indigo-400/20 dark:bg-indigo-500/[0.08]">
+          <div className="rounded-xl border border-indigo-300/45 bg-indigo-100/55 p-5 backdrop-blur-md dark:border-indigo-400/20 dark:bg-indigo-500/[0.08]">
             <div className="mb-3">
               <p className="text-[14px] font-medium text-indigo-700 dark:text-indigo-300">⚡ Reiniciar Flashcards</p>
-              <p className="mt-1 text-[13px] text-indigo-600/70 dark:text-indigo-400/70">
+              <p className="mt-1 text-[13px] text-indigo-700/80 dark:text-indigo-400/70">
                 Vuelve todas las tarjetas al estado inicial. El historial de respuestas no se borra.
               </p>
             </div>
@@ -126,10 +126,10 @@ export default function ConfiguracionPage() {
           </div>
 
           {/* Reiniciar Entrenamiento */}
-          <div className="rounded-xl border border-violet-300/30 bg-violet-50/60 p-5 backdrop-blur-md dark:border-violet-400/20 dark:bg-violet-500/[0.08]">
+          <div className="rounded-xl border border-violet-300/45 bg-violet-100/55 p-5 backdrop-blur-md dark:border-violet-400/20 dark:bg-violet-500/[0.08]">
             <div className="mb-3">
               <p className="text-[14px] font-medium text-violet-700 dark:text-violet-300">🧠 Reiniciar Entrenamiento Inteligente</p>
-              <p className="mt-1 text-[13px] text-violet-600/70 dark:text-violet-400/70">
+              <p className="mt-1 text-[13px] text-violet-700/80 dark:text-violet-400/70">
                 Borra tu historial de respuestas. Las Flashcards y FSRS no se ven afectados.
               </p>
             </div>
@@ -139,9 +139,9 @@ export default function ConfiguracionPage() {
           </div>
 
           {/* Zona de peligro — eliminar subcategorías */}
-          <div className="rounded-xl border border-rose-300/40 bg-rose-50/60 p-5 backdrop-blur-md dark:border-rose-400/20 dark:bg-rose-500/[0.07]">
+          <div className="rounded-xl border border-rose-300/50 bg-rose-100/55 p-5 backdrop-blur-md dark:border-rose-400/20 dark:bg-rose-500/[0.07]">
             <p className="mb-1 text-[14px] font-medium text-rose-700 dark:text-rose-300">⚠️ Zona de peligro</p>
-            <p className="mb-4 text-[13px] text-rose-600/70 dark:text-rose-400/70">
+            <p className="mb-4 text-[13px] text-rose-700/80 dark:text-rose-400/70">
               La eliminación es irreversible. Se borrarán todas las preguntas de la subcategoría o tema seleccionado.
             </p>
 
@@ -156,7 +156,7 @@ export default function ConfiguracionPage() {
               <div>
                 <label className={lbl}>Subcategoría</label>
                 {!selectedSpecialty ? (
-                  <div className="rounded-xl border border-rose-200/40 bg-white/40 px-4 py-2.5 text-[13px] text-rose-300 dark:border-rose-400/10 dark:bg-white/[0.02] dark:text-rose-400/40">
+                  <div className="rounded-xl border border-rose-300/50 bg-white/50 px-4 py-2.5 text-[13px] text-rose-400 dark:border-rose-400/10 dark:bg-white/[0.02] dark:text-rose-400/40">
                     Elige especialidad primero
                   </div>
                 ) : (
@@ -194,7 +194,7 @@ export default function ConfiguracionPage() {
             )}
 
             {!selectedSubcategory && (
-              <p className="text-[13px] text-rose-500/60 dark:text-rose-400/40">
+              <p className="text-[13px] text-rose-600/70 dark:text-rose-400/40">
                 Selecciona una especialidad y subcategoría para ver opciones de eliminación.
               </p>
             )}

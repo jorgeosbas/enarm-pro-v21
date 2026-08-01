@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { recordAnswerAction } from '@/features/question-bank/actions/recordAnswer';
 import { Navigation } from '@/components/Navigation';
-import { Button } from '@/components/ui/button';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { shuffleArray } from '@/lib/utils/shuffle';
 
 interface QuestionDetail {
   id: string;
@@ -38,6 +39,7 @@ export default function EstudiarPregunta({ params }: { params: any }) {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [hasAnswered, setHasAnswered] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [answerAnim, setAnswerAnim] = useState<'correct' | 'wrong' | null>(null);
 
   // Traer la pregunta específica
   const { data: question, isLoading, error } = useQuery({
@@ -82,24 +84,25 @@ export default function EstudiarPregunta({ params }: { params: any }) {
     enabled: Boolean(questionId),
   });
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-950">
-        <Navigation />
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-neutral-600 dark:text-neutral-400">Cargando pregunta...</p>
-        </div>
-      </div>
-    );
-  }
+  // Aleatoriza el orden de las opciones — se recalcula solo cuando cambia la pregunta.
+  // La corrección siempre compara por option.id / option.is_correct, nunca por posición.
+  const shuffledOptions = useMemo(
+    () => shuffleArray(question?.options ?? []),
+    [question?.id]
+  );
+
+  if (isLoading) return <LoadingScreen message="Cargando pregunta..." />;
 
   if (error || !question) {
     return (
-      <div className="flex min-h-screen flex-col bg-neutral-50 dark:bg-neutral-950">
-        <Navigation />
-        <div className="flex flex-1 flex-col items-center justify-center px-6">
-          <p className="mb-4 text-rose-700 dark:text-rose-400">Error al cargar la pregunta.</p>
-          <Button onClick={() => router.back()}>Volver</Button>
+      <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
+        <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
+        <div className="relative z-10"><Navigation /></div>
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 pt-32 gap-4">
+          <p className="text-[13px] text-rose-500 dark:text-rose-400">Error al cargar la pregunta.</p>
+          <button onClick={() => router.back()} className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-[13px] text-white">
+            Volver
+          </button>
         </div>
       </div>
     );
@@ -116,6 +119,8 @@ export default function EstudiarPregunta({ params }: { params: any }) {
     setSaving(true);
     try {
       await recordAnswerAction(questionId, selectedOptionId, isCorrect);
+      setAnswerAnim(isCorrect ? 'correct' : 'wrong');
+      setTimeout(() => setAnswerAnim(null), 450);
       setHasAnswered(true);
     } catch (err) {
       console.error('Error saving answer:', err);
@@ -130,35 +135,38 @@ export default function EstudiarPregunta({ params }: { params: any }) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      <Navigation />
+    <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
+      <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
+      <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
 
-      <main className="mx-auto max-w-3xl px-6 py-8">
+      <div className="relative z-10"><Navigation /></div>
+
+      <main className="relative z-10 mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-10 lg:px-6">
         {/* Botón de volver */}
         <button
           onClick={() => router.back()}
-          className="mb-6 inline-flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200"
+          className="mb-6 inline-flex items-center gap-2 text-[13px] text-slate-600 transition-colors hover:text-slate-900 dark:text-white/40 dark:hover:text-white/80"
         >
           ← Volver
         </button>
 
         {/* Breadcrumb con especialidad y subcategoría */}
-        <div className="mb-6 flex flex-wrap items-center gap-2 text-sm">
+        <div className="mb-5 flex flex-wrap items-center gap-2">
           {specialty && (
             <>
-              <span className="rounded-full bg-indigo-100 px-3 py-1 font-medium text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
+              <span className="rounded-full border border-indigo-300/50 bg-indigo-100/60 px-3 py-1 text-[12px] text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-500/15 dark:text-indigo-300">
                 {specialty.name}
               </span>
-              <span className="text-neutral-400">→</span>
+              <span className="text-slate-400 dark:text-white/20">→</span>
             </>
           )}
           {subcategory && (
-            <span className="rounded-full bg-indigo-200 px-3 py-1 font-medium text-indigo-800 dark:bg-indigo-800 dark:text-indigo-200">
+            <span className="rounded-full border border-indigo-300/50 bg-white/70 px-3 py-1 text-[12px] text-slate-700 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
               {subcategory.name}
             </span>
           )}
           <span
-            className={`ml-auto text-xs font-semibold ${
+            className={`ml-auto text-[11px] font-semibold ${
               question.difficulty === 'facil'
                 ? 'text-emerald-600 dark:text-emerald-400'
                 : question.difficulty === 'media'
@@ -170,66 +178,54 @@ export default function EstudiarPregunta({ params }: { params: any }) {
           </span>
         </div>
 
-        {/* Vignette */}
-        <div className="mb-8 rounded-lg border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
-          <p className="text-lg leading-relaxed text-neutral-800 dark:text-neutral-200">
+        {/* Viñeta */}
+        <div className="mb-5 rounded-2xl border border-indigo-300/50 bg-white/70 p-6 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]">
+          <p className="text-[15px] leading-relaxed text-[#1e1b4b] dark:text-white/90">
             {question.vignette}
           </p>
         </div>
 
         {/* Opciones */}
-        <div className="mb-8 space-y-3">
-          {question.options?.map((option) => {
+        <div className={`mb-5 space-y-2.5 ${answerAnim === 'wrong' ? 'animate-shake' : answerAnim === 'correct' ? 'animate-bounce-in' : ''}`}>
+          {shuffledOptions.map((option, idx) => {
             const selected = selectedOptionId === option.id;
             const showAsCorrect = hasAnswered && option.is_correct;
             const showAsIncorrect = hasAnswered && selected && !option.is_correct;
+            const displayLabel = String.fromCharCode(65 + idx);
 
             return (
               <button
                 key={option.id}
                 onClick={() => !hasAnswered && setSelectedOptionId(option.id)}
                 disabled={hasAnswered}
-                className={`w-full rounded-lg border-2 px-5 py-4 text-left transition-all ${
-                  !hasAnswered
-                    ? 'cursor-pointer hover:border-indigo-400 dark:hover:border-indigo-600'
-                    : 'cursor-default'
-                } ${
-                  selected && !hasAnswered
-                    ? 'border-indigo-500 bg-indigo-50 dark:border-indigo-600 dark:bg-indigo-950'
-                    : 'border-neutral-200 dark:border-neutral-800'
-                } ${
+                className={`w-full rounded-xl border px-5 py-4 text-left backdrop-blur-md transition-all ${
                   showAsCorrect
-                    ? 'border-emerald-500 bg-emerald-50 dark:border-emerald-600 dark:bg-emerald-950'
-                    : ''
-                } ${
-                  showAsIncorrect
-                    ? 'border-rose-500 bg-rose-50 dark:border-rose-600 dark:bg-rose-950'
-                    : ''
-                }`}
+                    ? 'border-emerald-400/50 bg-emerald-50/70 dark:border-emerald-400/30 dark:bg-emerald-500/10'
+                    : showAsIncorrect
+                      ? 'border-rose-400/50 bg-rose-50/70 dark:border-rose-400/30 dark:bg-rose-500/10'
+                      : selected && !hasAnswered
+                        ? 'border-indigo-400/50 bg-indigo-50/70 dark:border-indigo-400/30 dark:bg-indigo-500/10'
+                        : 'border-indigo-300/50 bg-white/70 hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.07]'
+                } ${hasAnswered ? 'cursor-default' : 'cursor-pointer'}`}
               >
                 <div className="flex items-start gap-4">
                   <div
-                    className={`mt-1 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 text-sm font-bold ${
+                    className={`mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border-2 text-[11px] font-bold ${
                       showAsCorrect
                         ? 'border-emerald-500 bg-emerald-500 text-white'
                         : showAsIncorrect
                           ? 'border-rose-500 bg-rose-500 text-white'
                           : selected && !hasAnswered
                             ? 'border-indigo-500 bg-indigo-500 text-white'
-                            : 'border-neutral-300 dark:border-neutral-600'
+                            : 'border-indigo-300 dark:border-white/20'
                     }`}
                   >
-                    {selected && !hasAnswered && '✓'}
-                    {showAsCorrect && '✓'}
+                    {(showAsCorrect || (selected && !hasAnswered)) && '✓'}
                     {showAsIncorrect && '✗'}
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-neutral-900 dark:text-neutral-100">
-                      {option.label})
-                    </div>
-                    <p className="mt-1 text-neutral-700 dark:text-neutral-300">
-                      {option.content}
-                    </p>
+                    <p className="text-[13px] font-medium text-[#1e1b4b] dark:text-white/80">{displayLabel})</p>
+                    <p className="mt-1 text-[14px] text-slate-700 dark:text-white/65">{option.content}</p>
                   </div>
                 </div>
               </button>
@@ -239,55 +235,38 @@ export default function EstudiarPregunta({ params }: { params: any }) {
 
         {/* Explicación (si ya respondió) */}
         {hasAnswered && question.explanation && (
-          <div className="mb-8 rounded-lg border border-indigo-300 bg-indigo-100 p-6 dark:border-indigo-800 dark:bg-indigo-900">
-            <h3 className="mb-2 font-semibold text-indigo-950 dark:text-indigo-100">
-              Explicación
-            </h3>
-            <p className="text-sm leading-relaxed text-indigo-900 dark:text-indigo-100">
-              {question.explanation}
-            </p>
+          <div className="mb-4 rounded-xl border border-indigo-300/45 bg-indigo-100/55 p-5 backdrop-blur-md dark:border-indigo-400/20 dark:bg-indigo-500/[0.08]">
+            <p className="mb-1 text-[12px] font-medium uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Explicación</p>
+            <p className="text-[14px] leading-relaxed text-slate-700 dark:text-white/70">{question.explanation}</p>
           </div>
         )}
 
         {/* Resultado (si ya respondió) */}
         {hasAnswered && (
-          <div
-            className={`mb-8 rounded-lg border p-6 ${
-              isCorrect
-                ? 'border-emerald-300 bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950'
-                : 'border-rose-300 bg-rose-100 dark:border-rose-800 dark:bg-rose-950'
-            }`}
-          >
-            <p
-              className={`text-lg font-semibold ${
-                isCorrect
-                  ? 'text-emerald-900 dark:text-emerald-200'
-                  : 'text-rose-900 dark:text-rose-200'
-              }`}
-            >
+          <div className={`mb-5 rounded-xl border p-4 backdrop-blur-md animate-slide-up ${isCorrect ? 'border-emerald-300/50 bg-emerald-100/55 dark:border-emerald-400/20 dark:bg-emerald-500/10' : 'border-rose-300/50 bg-rose-100/55 dark:border-rose-400/20 dark:bg-rose-500/10'}`}>
+            <p className={`text-[15px] font-medium ${isCorrect ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
               {isCorrect ? '✓ ¡Correcto!' : '✗ Incorrecto'}
             </p>
           </div>
         )}
 
         {/* Botones de acción */}
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           {!hasAnswered ? (
-            <Button
-              onClick={handleAnswerSubmit}
-              disabled={!selectedOptionId || saving}
-              className="flex-1"
-            >
+            <button onClick={handleAnswerSubmit} disabled={!selectedOptionId || saving}
+              className="flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 py-3 text-[14px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40">
               {saving ? 'Guardando…' : 'Confirmar respuesta'}
-            </Button>
+            </button>
           ) : (
-            <Button onClick={handleNextQuestion} className="flex-1">
+            <button onClick={handleNextQuestion}
+              className="flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 py-3 text-[14px] font-medium text-white transition-opacity hover:opacity-90">
               Volver al banco →
-            </Button>
+            </button>
           )}
-          <Button variant="secondary" onClick={() => router.push('/banco-preguntas')}>
+          <button onClick={() => router.push('/banco-preguntas')}
+            className="rounded-xl border border-indigo-300/50 bg-white/65 px-5 py-3 text-[14px] text-slate-700 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
             Banco
-          </Button>
+          </button>
         </div>
       </main>
     </div>

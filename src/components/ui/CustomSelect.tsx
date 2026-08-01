@@ -30,9 +30,9 @@ export const CustomSelect = React.forwardRef<HTMLSelectElement, CustomSelectProp
             // Tipografía
             'text-[13px]',
             // Colores modo claro
-            'bg-white/70 text-[#1e1b4b]',
+            'bg-white/75 text-[#1e1b4b]',
             // Borde modo claro
-            'border border-indigo-200/40',
+            'border border-indigo-300/50',
             // Colores modo oscuro
             'dark:bg-white/[0.05] dark:text-white/85',
             'dark:border-white/[0.08]',
@@ -54,7 +54,7 @@ export const CustomSelect = React.forwardRef<HTMLSelectElement, CustomSelectProp
         </select>
 
         {/* Chevron — pointer-events-none para no bloquear clicks */}
-        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/30">
+        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-white/30">
           <svg
             className="h-4 w-4"
             fill="none"
