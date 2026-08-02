@@ -81,9 +81,17 @@ export function Navigation() {
 
   return (
     <>
-      {/* Header principal — glassmorphism */}
+      {/* Header principal — glassmorphism.
+          paddingTop: env(safe-area-inset-top) dispareja del padding normal:
+          con statusBarStyle 'black-translucent' (agregado en la sesión
+          pasada), iOS deja que la barra de hora/batería flote ENCIMA del
+          contenido en vez de empujarlo — así se ve nativo — pero eso
+          significa que el header tiene que dejarle ese espacio a mano, o
+          el reloj se encima con el logo (como reportaste). Es el mismo
+          truco que ya usa el menú inferior con safe-area-inset-bottom. */}
       <header
         className="sticky top-0 z-30 border-b border-indigo-300/40 bg-white/75 backdrop-blur-xl will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14]/80"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 lg:px-6">
           {/* Logo */}
