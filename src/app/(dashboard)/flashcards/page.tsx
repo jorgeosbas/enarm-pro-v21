@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDueFlashcards } from '@/features/flashcards/hooks/useDueFlashcards';
 import { updateFlashcardProgressAction, initializeAllFlashcardsAction } from '@/features/flashcards/actions/updateProgress';
-import { Navigation } from '@/components/Navigation';
 import { FlashcardCard } from '@/components/FlashcardCard';
 import { FlashcardRating, FlashcardWithProgress } from '@/features/flashcards/types';
 
@@ -81,7 +80,7 @@ export default function FlashcardsPage() {
     return (
       <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
         <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
-        <div className="relative z-10"><Navigation /></div>
+        
         <main className="relative z-10 mx-auto max-w-2xl px-4 pt-10">
           <div className="rounded-xl border border-rose-300/50 bg-rose-100/55 p-5 backdrop-blur-md dark:border-rose-400/20 dark:bg-rose-500/[0.07]">
             <p className="text-[13px] text-rose-700 dark:text-rose-300">{errorMsg}</p>
@@ -99,7 +98,7 @@ export default function FlashcardsPage() {
       <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
         <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
         <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
-        <div className="relative z-10"><Navigation /></div>
+        
         <main className="relative z-10 mx-auto max-w-2xl px-4 pb-24 pt-10 text-center">
           <div className="rounded-2xl border border-emerald-300/50 bg-white/70 p-12 backdrop-blur-md dark:border-emerald-400/20 dark:bg-white/[0.04]">
             <div className="mb-4 text-5xl">🎉</div>
@@ -169,7 +168,7 @@ export default function FlashcardsPage() {
       <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
 
-      <div className="relative z-10"><Navigation /></div>
+      
 
       <main className="relative z-10 mx-auto max-w-2xl px-4 pb-24 pt-6 md:pb-10 lg:px-6">
         {/* Barra de progreso */}

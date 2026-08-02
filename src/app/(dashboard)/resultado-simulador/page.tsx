@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Navigation } from '@/components/Navigation';
-
 export default function ResultadoSimuladorPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,7 +39,7 @@ export default function ResultadoSimuladorPage() {
       <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
 
-      <div className="relative z-10"><Navigation /></div>
+      
 
       <main className="relative z-10 mx-auto max-w-lg px-4 pb-24 pt-10 md:pb-10">
         {/* Encabezado */}

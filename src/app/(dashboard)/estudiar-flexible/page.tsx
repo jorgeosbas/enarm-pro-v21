@@ -6,7 +6,6 @@ import { useRandomQuestionsFromSubcategory } from '@/features/question-bank/hook
 import { useQuestionsBySpecialty } from '@/features/question-bank/hooks/useQuestionsBySpecialty';
 import { recordAnswerAction } from '@/features/question-bank/actions/recordAnswer';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { Navigation } from '@/components/Navigation';
 import { shuffleArray } from '@/lib/utils/shuffle';
 
 export default function EstudiarFlexiblePage() {
@@ -55,7 +54,7 @@ export default function EstudiarFlexiblePage() {
   if (!specialtyId) {
     return (
       <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
-        <div className="relative z-10"><Navigation /></div>
+        
         <div className="relative z-10 flex items-center justify-center pt-32">
           <p className="text-[13px] text-slate-500">Parámetros inválidos.</p>
         </div>
@@ -69,7 +68,7 @@ export default function EstudiarFlexiblePage() {
     return (
       <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
         <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
-        <div className="relative z-10"><Navigation /></div>
+        
         <div className="relative z-10 flex flex-col items-center justify-center px-4 pt-32 gap-4">
           <p className="text-[13px] text-slate-500 dark:text-white/40">No hay preguntas disponibles en esta selección.</p>
           <button onClick={() => router.push('/dashboard')} className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-5 py-2.5 text-[13px] text-white">
@@ -124,7 +123,7 @@ export default function EstudiarFlexiblePage() {
       <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
 
-      <div className="relative z-10"><Navigation /></div>
+      
 
       <main className="relative z-10 mx-auto max-w-3xl px-4 pb-24 pt-6 md:pb-10 lg:px-6">
         {/* Progreso */}

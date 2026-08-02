@@ -4,8 +4,6 @@ import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUserProfile } from '@/features/question-bank/hooks/useUserProfile';
 import { saveUserProfileAction } from '@/features/question-bank/actions/saveProfile';
-import { Navigation } from '@/components/Navigation';
-
 export default function PerfilPage() {
   const queryClient = useQueryClient();
   const { data: profile, isLoading } = useUserProfile();
@@ -50,7 +48,7 @@ export default function PerfilPage() {
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
       <div className="pointer-events-none fixed bottom-[20px] left-[160px] h-[220px] w-[220px] rounded-full bg-cyan-400/12 dark:bg-cyan-400/10" style={{ filter: 'blur(70px)' }} />
 
-      <div className="relative z-10"><Navigation /></div>
+      
 
       <main className="relative z-10 mx-auto max-w-2xl px-4 pb-24 pt-8 md:pb-10 lg:px-6">
         <div className="mb-6">

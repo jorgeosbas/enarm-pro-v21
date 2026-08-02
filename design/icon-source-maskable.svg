@@ -1,0 +1,38 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="48%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#0ea5b7"/>
+    </linearGradient>
+    <linearGradient id="glassSheen" x1="180" y1="80" x2="820" y2="520" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.5"/>
+      <stop offset="35%" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="pulseStroke" x1="180" y1="512" x2="844" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="50%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.55"/>
+    </linearGradient>
+    <filter id="glowLine" x="-60%" y="-200%" width="220%" height="500%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Fondo a sangre completa: el SO recorta esto con su propia máscara
+       (círculo, squircle, gota, etc.) — por eso NO lleva esquinas
+       redondeadas aquí, deben cubrir hasta el borde. -->
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#bg)"/>
+  <ellipse cx="430" cy="230" rx="620" ry="360" fill="url(#glassSheen)"/>
+
+  <!-- El glifo se reduce y centra dentro de la "zona segura" (~66% del
+       lienzo) para que sobreviva cualquier máscara del sistema. -->
+  <g transform="translate(512 512) scale(0.66) translate(-512 -512)">
+    <polyline points="176,560 340,560 392,420 452,660 512,340 566,560 620,480 664,560 848,560"
+              fill="none" stroke="url(#pulseStroke)" stroke-width="34"
+              stroke-linecap="round" stroke-linejoin="round" filter="url(#glowLine)"/>
+    <circle cx="512" cy="340" r="20" fill="#ffffff"/>
+  </g>
+</svg>

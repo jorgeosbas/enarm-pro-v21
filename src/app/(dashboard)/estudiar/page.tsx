@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useSpecialties } from '@/features/question-bank/hooks/useSpecialties';
 import { useSubcategoriesBySpecialty } from '@/features/question-bank/hooks/useSubcategories';
 import { useThemesBySubcategory } from '@/features/question-bank/hooks/useThemesBySubcategory';
-import { Navigation } from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 
 export default function EstudiarPage() {
@@ -47,7 +46,6 @@ export default function EstudiarPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      <Navigation />
 
       <main className="mx-auto max-w-2xl px-6 py-8">
         <div className="mb-8">

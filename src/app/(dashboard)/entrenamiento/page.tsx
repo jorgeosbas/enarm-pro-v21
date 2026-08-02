@@ -4,7 +4,6 @@ import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTrainingQuestions } from '@/features/training/hooks/useTrainingQuestions';
 import { recordAnswerAction } from '@/features/question-bank/actions/recordAnswer';
-import { Navigation } from '@/components/Navigation';
 import { shuffleArray } from '@/lib/utils/shuffle';
 
 export default function EntrenamientoPage() {
@@ -35,7 +34,6 @@ export default function EntrenamientoPage() {
   if (isLoading) {
     return (
       <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
-        <Navigation />
         <div className="flex flex-1 items-center justify-center pt-32">
           <div className="text-center">
             <p className="mb-2 text-[15px] font-medium text-[#1e1b4b] dark:text-white">
@@ -53,7 +51,6 @@ export default function EntrenamientoPage() {
   if (error || !questions || questions.length === 0) {
     return (
       <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
-        <Navigation />
         <div className="flex flex-1 flex-col items-center justify-center px-6 pt-32">
           <p className="mb-4 text-[14px] text-rose-600 dark:text-rose-400">
             No hay preguntas disponibles para el entrenamiento.
@@ -129,7 +126,6 @@ export default function EntrenamientoPage() {
       />
 
       <div className="relative z-10">
-        <Navigation />
       </div>
 
       <main className="relative z-10 mx-auto max-w-3xl px-4 pb-24 pt-8 md:pb-10 lg:px-6">

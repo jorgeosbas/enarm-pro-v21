@@ -10,7 +10,6 @@ import { importQuestionsAction, type ImportSummary } from './actions';
 import { useSpecialties } from '@/features/question-bank/hooks/useSpecialties';
 import { useSubcategoriesBySpecialty } from '@/features/question-bank/hooks/useSubcategories';
 import { useThemesBySubcategory } from '@/features/question-bank/hooks/useThemesBySubcategory';
-import { Navigation } from '@/components/Navigation';
 import { CreateCategoryModal } from '@/components/CreateCategoryModal';
 
 const PLACEHOLDER = `P: Hombre de 58 años, hipertenso y tabaquista, con dolor torácico opresivo de 2h irradiado a brazo izquierdo y diaforesis. ECG con elevación del ST en II, III y aVF. ¿Diagnóstico más probable?
@@ -90,7 +89,7 @@ export default function ImportarPage() {
       <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
 
-      <div className="relative z-10"><Navigation /></div>
+      
 
       <main className="relative z-10 mx-auto max-w-4xl px-4 pb-24 pt-8 md:pb-10 lg:px-6">
         <div className="mb-6">

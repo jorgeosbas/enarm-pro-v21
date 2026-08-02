@@ -9,7 +9,6 @@ import { useSpecialties } from '@/features/question-bank/hooks/useSpecialties';
 import { useSubcategoriesBySpecialty } from '@/features/question-bank/hooks/useSubcategories';
 import { useThemesBySubcategory } from '@/features/question-bank/hooks/useThemesBySubcategory';
 import { deleteQuestionAction } from '@/features/question-bank/actions/deleteQuestion';
-import { Navigation } from '@/components/Navigation';
 import { QuestionRow } from '@/components/QuestionRow';
 
 export default function BancoPreguntas() {
@@ -79,7 +78,7 @@ export default function BancoPreguntas() {
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
       <div className="pointer-events-none fixed bottom-[20px] left-[160px] h-[220px] w-[220px] rounded-full bg-cyan-400/12 dark:bg-cyan-400/10" style={{ filter: 'blur(70px)' }} />
 
-      <div className="relative z-10"><Navigation /></div>
+      
 
       <main className="relative z-10 mx-auto max-w-5xl px-4 pb-24 pt-8 md:pb-10 lg:px-6">
         <div className="mb-6">

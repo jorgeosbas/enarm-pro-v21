@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import { useQuestions } from '@/features/question-bank/hooks/useQuestions';
-import { Navigation } from '@/components/Navigation';
 import Link from 'next/link';
 
 export default function BuscarPage() {
@@ -22,7 +21,6 @@ export default function BuscarPage() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950">
-      <Navigation />
 
       <main className="mx-auto max-w-4xl px-6 py-8">
         <div className="mb-8">

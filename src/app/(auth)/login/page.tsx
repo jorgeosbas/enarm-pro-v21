@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +22,15 @@ export default function LoginPage() {
       setError('Correo o contraseña incorrectos.');
       return;
     }
-    window.location.href = '/dashboard';
+    // router.push (en vez de window.location.href) hace una navegación
+    // interna de Next.js, sin recargar la página completa. En iPadOS,
+    // una recarga completa dentro de la app instalada ("Agregar a inicio")
+    // es la clase de navegación que puede sacarte del modo standalone y
+    // mostrar de vuelta la barra de Safari — con router.push eso no pasa.
+    // router.refresh() de paso asegura que el layout vuelva a checar la
+    // sesión ya con la cookie recién creada.
+    router.push('/dashboard');
+    router.refresh();
   }
 
   return (

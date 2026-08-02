@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Navigation } from '@/components/Navigation';
 import { SelectCategoryModal } from '@/components/SelectCategoryModal';
 import { SelectQuestionCountModal } from '@/components/SelectQuestionCountModal';
 import { useRandomQuestionsFromAll } from '@/features/question-bank/hooks/useRandomQuestions';
@@ -188,7 +187,7 @@ export default function DashboardPage() {
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
       <div className="pointer-events-none fixed bottom-[20px] left-[160px] h-[220px] w-[220px] rounded-full bg-cyan-400/12 dark:bg-cyan-400/10" style={{ filter: 'blur(70px)' }} />
 
-      <div className="relative z-10"><Navigation /></div>
+      
 
       <main className="relative z-10 mx-auto max-w-5xl px-4 pb-24 pt-6 md:pb-10 lg:px-6">
 

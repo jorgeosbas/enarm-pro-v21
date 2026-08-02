@@ -9,8 +9,6 @@ import { useThemesBySubcategory } from '@/features/question-bank/hooks/useThemes
 import { deleteSubcategoryAction, deleteThemeAction } from '@/features/question-bank/actions/deleteSubcategoryAndTheme';
 import { resetPriorityScoreAction } from '@/features/training/actions/resetPriorityScore';
 import { resetAllFlashcardsProgressAction } from '@/features/flashcards/actions/updateProgress';
-import { Navigation } from '@/components/Navigation';
-
 export default function ConfiguracionPage() {
   const queryClient = useQueryClient();
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
@@ -101,7 +99,7 @@ export default function ConfiguracionPage() {
       <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
 
-      <div className="relative z-10"><Navigation /></div>
+      
 
       <main className="relative z-10 mx-auto max-w-3xl px-4 pb-24 pt-8 md:pb-10 lg:px-6">
         <div className="mb-6">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { Navigation } from '@/components/Navigation';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -42,8 +43,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return null; // El useEffect ya redirigió a login
   }
 
-  // Colchón extra debajo de cada página en móvil, para que el contenido nunca
-  // quede pegado al menú inferior fijo — independiente del padding que ya
-  // traiga cada <main>. En escritorio no hay menú inferior, así que no aplica.
-  return <div className="pb-8 md:pb-0">{children}</div>;
+  // Navigation vive aquí, en el layout compartido de (dashboard) — NO dentro
+  // de cada page.tsx. Un layout de Next.js persiste entre navegaciones a
+  // páginas hermanas (banco-preguntas → importar → dashboard, etc.); solo
+  // "children" se reemplaza. Antes cada página montaba su propia
+  // <Navigation />, así que en cada cambio de pantalla el menú se destruía
+  // y se volvía a crear desde cero — eso era el "parpadeo"/glitch que
+  // reportaste, tanto en el header de escritorio como en el menú inferior
+  // móvil. Con Navigation aquí, es un solo componente que nunca se
+  // desmonta mientras navegas dentro de la app.
+  return (
+    <>
+      <Navigation />
+      <div className="pb-8 md:pb-0">{children}</div>
+    </>
+  );
 }
