@@ -26,21 +26,31 @@ export default function FlashcardsPage() {
 
     async function loadSession() {
       try {
-        // 1. Pedimos los datos frescos a Supabase directo (ignorando cachés)
+        // 1. Registrar SIEMPRE primero las preguntas del banco que el
+        //    usuario aún no tiene en su progreso de flashcards.
+        //
+        //    ANTES esto solo corría "si la cola venía vacía". Con el tope
+        //    diario de tarjetas nuevas (MAX_NEW_CARDS_PER_DAY en
+        //    useDueFlashcards.ts), la cola casi nunca está vacía en un
+        //    banco compartido activo — así que las preguntas recién
+        //    importadas por cualquiera del grupo podían tardar semanas en
+        //    registrarse, o nunca hacerlo. Ahora se registra en cada
+        //    entrada a la pantalla, sin condición.
+        const initResult = await initializeAllFlashcardsAction();
+        if (!initResult.success) {
+          // No es fatal: seguimos con la cola que ya exista.
+          console.warn(
+            '[flashcards/page] No se pudieron registrar preguntas nuevas:',
+            initResult.message
+          );
+        }
+
+        // 2. Pedimos los datos frescos a Supabase directo (ignorando cachés)
         const { data, error } = await refetch();
 
         if (error) throw error;
 
-        let finalData = data || [];
-
-        // 2. Si viene vacío, revisamos si hay tarjetas nuevas por inicializar en el backend
-        if (finalData.length === 0) {
-          const result = await initializeAllFlashcardsAction();
-          if (result.success && result.initialized > 0) {
-            const { data: newData } = await refetch(); // Volvemos a pedir si se generaron nuevas
-            finalData = newData || [];
-          }
-        }
+        const finalData = data || [];
 
         // 3. Establecemos la cola definitiva
         if (isMounted) {

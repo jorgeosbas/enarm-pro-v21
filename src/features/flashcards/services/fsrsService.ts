@@ -68,6 +68,48 @@ export function createCardFromProgress(progress: FlashcardProgress): Card {
 }
 
 /**
+ * FSRS-4 (implementado por ts-fsrs 3.x) espera EXACTAMENTE 17 pesos.
+ * Si se le pasan menos, los índices faltantes quedan undefined y el
+ * cálculo produce NaN de forma silenciosa.
+ */
+const EXPECTED_W_LENGTH = 17;
+
+/**
+ * Pesos oficiales por defecto de FSRS-4 (17 valores).
+ *
+ * ANTES aquí había solo 14 valores. Los índices 14, 15 y 16 quedaban
+ * undefined, y son precisamente los que usan:
+ *   - w[14] → Repetir (estabilidad tras olvido)
+ *   - w[15] → Difícil (penalización)
+ *   - w[16] → Fácil (bonificación)
+ * Es decir: "Bien" era la única calificación que funcionaba completa.
+ *
+ * Si algún día quieres personalizarlos (FSRS permite optimizarlos con tu
+ * propio historial), debe seguir siendo un arreglo de EXACTAMENTE 17.
+ */
+const FSRS_WEIGHTS = [
+  0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05, 0.34,
+  1.26, 0.29, 2.61,
+];
+
+/**
+ * Valida que el resultado del cálculo sea utilizable.
+ *
+ * Sin esta comprobación, un resultado con NaN se acepta como válido y más
+ * abajo `daysToAdd > 0` da false (porque NaN nunca es mayor que nada),
+ * cayendo al caso "Again" → la tarjeta se reprograma a 10 minutos aunque
+ * el usuario haya marcado "Fácil".
+ */
+function isUsableResult(card: Card | undefined | null): boolean {
+  if (!card) return false;
+  return (
+    Number.isFinite((card as any).stability) &&
+    Number.isFinite((card as any).difficulty) &&
+    Number.isFinite((card as any).scheduled_days)
+  );
+}
+
+/**
  * Calcular siguiente estado con FSRS
  */
 export function calculateFSRS(
@@ -76,29 +118,59 @@ export function calculateFSRS(
   now: Date = new Date()
 ) {
   const DAY_MS = 24 * 60 * 60 * 1000;
+
+  if (FSRS_WEIGHTS.length !== EXPECTED_W_LENGTH) {
+    console.warn(
+      `[FSRS] Configuración incompleta: se pasaron ${FSRS_WEIGHTS.length} pesos ` +
+        `pero FSRS-4 espera ${EXPECTED_W_LENGTH}. Los cálculos de Repetir/Difícil/Fácil ` +
+        `pueden producir valores inválidos y caer al cálculo manual de respaldo.`
+    );
+  }
+
   const f = fsrs({
-    w: [0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.52, 0.62, 2.33],
+    w: FSRS_WEIGHTS,
     request_retention: 0.9,
     maximum_interval: 36500,
   });
 
   let calculatedResult: { card: Card; log: any } | null = null;
+  let sourceUsed: 'repeat' | 'next' | 'manual' = 'manual';
 
   try {
     const schedulingCards = (f as any).repeat(card, now);
-    const result = schedulingCards[rating];
-    if (result?.card) calculatedResult = { card: result.card, log: result.log ?? null };
-  } catch (_) {}
+    const result = schedulingCards?.[rating];
+    if (isUsableResult(result?.card)) {
+      calculatedResult = { card: result.card, log: result.log ?? null };
+      sourceUsed = 'repeat';
+    }
+  } catch (err) {
+    console.error('[FSRS] Falló el método repeat():', err);
+  }
 
   if (!calculatedResult) {
     try {
       const result = (f as any).next(card, now, rating);
-      if (result?.card) calculatedResult = { card: result.card, log: result.log ?? null };
-    } catch (_) {}
+      if (isUsableResult(result?.card)) {
+        calculatedResult = { card: result.card, log: result.log ?? null };
+        sourceUsed = 'next';
+      }
+    } catch (err) {
+      console.error('[FSRS] Falló el método next():', err);
+    }
   }
 
   if (!calculatedResult) {
+    console.warn(
+      `[FSRS] La librería no devolvió un resultado utilizable para rating=${rating}. ` +
+        `Usando el cálculo manual de respaldo (menos preciso que FSRS).`
+    );
     calculatedResult = calculateFSRSManual(card, rating, now);
+    sourceUsed = 'manual';
+  }
+
+  // Marca de diagnóstico: permite saber qué ruta se usó realmente en producción.
+  if (typeof window !== 'undefined') {
+    (window as any).__fsrsLastSource = sourceUsed;
   }
 
   // SOLUCIÓN DEFINITIVA: Descongelar el objeto clonándolo
@@ -106,6 +178,10 @@ export function calculateFSRS(
 
   // Forzar que los botones avancen los días sí o sí
   let daysToAdd = finalCard.scheduled_days;
+
+  // Red de seguridad extra: si aun así llegó un valor no numérico, tratarlo
+  // como 0 en vez de dejar que NaN se propague hasta el cálculo de la fecha.
+  if (!Number.isFinite(daysToAdd)) daysToAdd = 0;
 
   // Intervención de seguridad por si FSRS se queda en 0 días para respuestas positivas
   if (rating === Rating.Easy && daysToAdd < 4) daysToAdd = 4;

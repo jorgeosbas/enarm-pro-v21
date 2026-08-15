@@ -48,6 +48,18 @@ export interface ScoringInput {
   fsrsData: FSRSReadonlyData | null;     // null si la pregunta no tiene progreso FSRS
   themeStats: ThemeStats | null;         // null si no hay historial para ese tema
   lastAttempt: LastAttempt | null;       // null si nunca se respondió
+  /**
+   * ISO string de la última vez que el usuario respondió CUALQUIER pregunta
+   * de este tema (en cualquier modo). Null si nunca. Se usa solo para el
+   * cooldown de 24h. Opcional para no romper llamadas existentes.
+   */
+  themeLastPracticed?: string | null;
+  /**
+   * Valor ya calculado para el componente FSRS. Lo usa selectTrainingQuestions
+   * cuando detecta saturación por inactividad y necesita sustituir el valor
+   * absoluto por uno relativo (ranking). Si no se pasa, se calcula normal.
+   */
+  fsrsOverride?: number;
 }
 
 // ─────────────────────────────────────────────
@@ -60,6 +72,31 @@ const WEIGHTS = {
   importance: 0.20,  // 20% — Importancia ENARM (1–5)
   recency: 0.10,     // 10% — Tiempo desde el último intento
 } as const;
+
+/**
+ * Score asignado a una pregunta sin historial (nunca vista / nunca respondida).
+ * Alto —queremos que las preguntas nuevas entren pronto— pero NO máximo,
+ * para que no desplacen automáticamente a las preguntas débiles ya vistas.
+ */
+const COLD_START_SCORE = 0.75;
+
+/**
+ * Reentrada tras inactividad.
+ * Si la mediana de urgencia FSRS del banco supera este umbral, significa que
+ * prácticamente TODO está vencido (típico al volver tras días o semanas sin
+ * estudiar). En ese estado la fórmula absoluta pierde poder de discriminación
+ * porque todo se satura cerca de 1.0, así que se cambia a ranking relativo.
+ */
+const SATURATION_THRESHOLD = 0.90;
+
+/**
+ * Cooldown por tema: si un tema ya se practicó dentro de las últimas
+ * COOLDOWN_HOURS horas, su score se multiplica por COOLDOWN_FACTOR.
+ * Evita la "espiral de la muerte": que un tema débil te persiga sesión
+ * tras sesión sin dejar subir a los demás.
+ */
+const COOLDOWN_HOURS = 24;
+const COOLDOWN_FACTOR = 0.7;
 
 // ─────────────────────────────────────────────
 // Helpers de normalización
@@ -77,8 +114,16 @@ const WEIGHTS = {
  */
 function normalizeFSRS(fsrsData: FSRSReadonlyData | null): number {
   if (!fsrsData || !fsrsData.last_review) {
-    // Sin historial FSRS → prioridad máxima (nunca revisada)
-    return 1.0;
+    // COLD START: antes esto devolvía 1.0 (prioridad máxima).
+    // Combinado con normalizeRecency (que también devolvía 1.0 para una
+    // pregunta nunca respondida), cualquier pregunta nueva arrancaba con
+    // 0.4 + 0.1 = 0.5 de score GARANTIZADO, por encima de casi cualquier
+    // pregunta ya vista por débil que estuviera. En la práctica eso hacía
+    // que Entrenamiento Inteligente funcionara más como "alimentador de
+    // preguntas nuevas" que como repaso inteligente.
+    // Con COLD_START_SCORE la pregunta nueva sigue siendo prioritaria
+    // (0.75 es alto), pero ya no barre automáticamente con lo demás.
+    return COLD_START_SCORE;
   }
 
   const stability = Math.max(fsrsData.stability, 0.1); // evitar división por 0
@@ -126,7 +171,8 @@ function normalizeImportance(importance: number): number {
  */
 function normalizeRecency(lastAttempt: LastAttempt | null): number {
   if (!lastAttempt) {
-    return 1.0; // Nunca respondida → máxima prioridad
+    // COLD START (ver normalizeFSRS): alta prioridad, no máxima.
+    return COLD_START_SCORE;
   }
 
   const lastDate = new Date(lastAttempt.answered_at);
@@ -164,20 +210,27 @@ export interface PriorityScoreResult {
  * @returns Score entre 0 y 1, más un breakdown para debugging
  */
 export function calculatePriorityScore(input: ScoringInput): PriorityScoreResult {
-  const { question, fsrsData, themeStats, lastAttempt } = input;
+  const { question, fsrsData, themeStats, lastAttempt, themeLastPracticed, fsrsOverride } = input;
 
   // Normalizar cada componente a [0, 1]
-  const fsrsScore       = normalizeFSRS(fsrsData);
+  // fsrsOverride llega cuando selectTrainingQuestions detectó saturación por
+  // inactividad y sustituyó el valor absoluto por el ranking relativo.
+  const fsrsScore       = fsrsOverride ?? normalizeFSRS(fsrsData);
   const themeScore      = normalizeTheme(themeStats);
   const importanceScore = normalizeImportance(question.importance);
   const recencyScore    = normalizeRecency(lastAttempt);
 
   // Suma ponderada según los pesos definidos arriba
-  const score =
+  const rawScore =
     WEIGHTS.fsrs       * fsrsScore +
     WEIGHTS.theme      * themeScore +
     WEIGHTS.importance * importanceScore +
     WEIGHTS.recency    * recencyScore;
+
+  // COOLDOWN: si este tema ya se trabajó en las últimas 24h, se reduce su
+  // score para dejar espacio a otros temas en la próxima sesión.
+  const cooldown = getCooldownFactor(themeLastPracticed ?? null);
+  const score = rawScore * cooldown;
 
   return {
     question_id: question.id,
@@ -189,6 +242,67 @@ export function calculatePriorityScore(input: ScoringInput): PriorityScoreResult
       recency:    recencyScore,
     },
   };
+}
+
+/**
+ * Devuelve COOLDOWN_FACTOR si el tema se practicó dentro de las últimas
+ * COOLDOWN_HOURS horas; 1 (sin penalización) en cualquier otro caso.
+ */
+function getCooldownFactor(themeLastPracticed: string | null): number {
+  if (!themeLastPracticed) return 1;
+
+  const last = new Date(themeLastPracticed);
+  if (isNaN(last.getTime())) return 1;
+
+  const hoursSince = (Date.now() - last.getTime()) / (1000 * 60 * 60);
+  return hoursSince < COOLDOWN_HOURS ? COOLDOWN_FACTOR : 1;
+}
+
+// ─────────────────────────────────────────────
+// Helpers estadísticos (para la reentrada tras inactividad)
+// ─────────────────────────────────────────────
+
+/** Mediana de una lista de números. Devuelve 0 si la lista está vacía. */
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+
+  if (sorted.length % 2 === 0) {
+    const lower = sorted[mid - 1] ?? 0;
+    const upper = sorted[mid] ?? 0;
+    return (lower + upper) / 2;
+  }
+
+  return sorted[mid] ?? 0;
+}
+
+/**
+ * Convierte una lista de valores en su ranking percentil dentro de la propia
+ * lista: el valor más bajo → 0, el más alto → 1, el resto repartido según su
+ * posición. Preserva el orden original del arreglo de entrada.
+ *
+ * Esto es lo que restaura la capacidad de discriminar cuando todos los
+ * valores absolutos están saturados cerca de 1.0.
+ */
+function toPercentileRanks(values: number[]): number[] {
+  const n = values.length;
+  if (n === 0) return [];
+  if (n === 1) return [1];
+
+  // Emparejar cada valor con su índice original y ordenar de menor a mayor
+  const indexed = values.map((value, index) => ({ value, index }));
+  indexed.sort((a, b) => a.value - b.value);
+
+  const ranks = new Array<number>(n).fill(0);
+  for (let position = 0; position < indexed.length; position++) {
+    const entry = indexed[position];
+    if (!entry) continue;
+    ranks[entry.index] = position / (n - 1);
+  }
+
+  return ranks;
 }
 
 // ─────────────────────────────────────────────
@@ -214,15 +328,36 @@ export function selectTrainingQuestions<T extends QuestionForScoring>(
     fsrsData: FSRSReadonlyData | null;
     themeStats: ThemeStats | null;
     lastAttempt: LastAttempt | null;
+    themeLastPracticed?: string | null;
   }>,
   count: number
 ): T[] {
   if (questions.length === 0) return [];
 
+  // ── REENTRADA TRAS INACTIVIDAD ──────────────────────────────────────────
+  // El componente FSRS usa R = e^(-días/estabilidad), que decae exponencial.
+  // Si el usuario pasa días o semanas sin estudiar, TODAS las preguntas
+  // llegan a urgencia ~1.0 al mismo tiempo y el 40% del score se aplana:
+  // el algoritmo deja de poder distinguir qué es más urgente justo cuando
+  // más falta hace. Para evitarlo se mide la saturación del banco y, si es
+  // alta, se sustituye el valor absoluto por el ranking RELATIVO dentro del
+  // propio banco — así siempre hay una gradiente utilizable, sin importar
+  // cuánto tiempo haya pasado desde la última sesión.
+  const rawFsrs = questions.map((q) => normalizeFSRS(q.fsrsData));
+  const useRelativeFsrs = median(rawFsrs) > SATURATION_THRESHOLD;
+  const relativeFsrs = useRelativeFsrs ? toPercentileRanks(rawFsrs) : null;
+
   // 1. Calcular score para cada pregunta
-  const scored: ScoredQuestion<T>[] = questions.map(({ question, fsrsData, themeStats, lastAttempt }) => ({
-    question,
-    score: calculatePriorityScore({ question, fsrsData, themeStats, lastAttempt }).score,
+  const scored: ScoredQuestion<T>[] = questions.map((item, index) => ({
+    question: item.question,
+    score: calculatePriorityScore({
+      question:   item.question,
+      fsrsData:   item.fsrsData,
+      themeStats: item.themeStats,
+      lastAttempt: item.lastAttempt,
+      themeLastPracticed: item.themeLastPracticed ?? null,
+      fsrsOverride: relativeFsrs ? relativeFsrs[index] : undefined,
+    }).score,
   }));
 
   // 2. Ordenar de mayor a menor prioridad

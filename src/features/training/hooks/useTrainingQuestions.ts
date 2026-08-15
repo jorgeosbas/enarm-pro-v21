@@ -131,6 +131,11 @@ export function useTrainingQuestions(count: number) {
 
       // Quedarse solo con el intento más reciente por pregunta
       const lastAttemptMap = new Map<string, LastAttempt>();
+      // Y, en la misma pasada, la última vez que se tocó CADA TEMA
+      // (en cualquier modo de quiz) — alimenta el cooldown de 24h que
+      // evita que un mismo tema domine sesión tras sesión.
+      const themeLastPracticedMap = new Map<string, string>();
+
       for (const row of lastAttemptRows || []) {
         const r = row as any;
         if (!lastAttemptMap.has(r.question_id)) {
@@ -138,6 +143,13 @@ export function useTrainingQuestions(count: number) {
             question_id: r.question_id,
             answered_at: r.answered_at,
           });
+        }
+
+        // lastAttemptRows viene ordenado por answered_at descendente,
+        // así que el primero que veamos de cada tema es el más reciente.
+        const themeId = themeIdByQuestion.get(r.question_id);
+        if (themeId && !themeLastPracticedMap.has(themeId)) {
+          themeLastPracticedMap.set(themeId, r.answered_at);
         }
       }
 
@@ -159,6 +171,9 @@ export function useTrainingQuestions(count: number) {
           fsrsData:   fsrsMap.get(q.id) ?? null,
           themeStats: q.theme_id ? (themeStatsMap.get(q.theme_id) ?? null) : null,
           lastAttempt: lastAttemptMap.get(q.id) ?? null,
+          themeLastPracticed: q.theme_id
+            ? (themeLastPracticedMap.get(q.theme_id) ?? null)
+            : null,
           // Para selectTrainingQuestions necesita el QuestionForScoring
           _scoring: qForScore,
         };
@@ -171,6 +186,7 @@ export function useTrainingQuestions(count: number) {
           fsrsData:    item.fsrsData,
           themeStats:  item.themeStats,
           lastAttempt: item.lastAttempt,
+          themeLastPracticed: item.themeLastPracticed,
         })),
         count
       );
