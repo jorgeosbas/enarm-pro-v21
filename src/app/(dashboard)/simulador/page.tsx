@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useRandomQuestionsFromAll } from '@/features/question-bank/hooks/useRandomQuestions';
 import { recordAnswerAction } from '@/features/question-bank/actions/recordAnswer';
 import { shuffleArray } from '@/lib/utils/shuffle';
+import { FlagQuestionButton } from '@/components/FlagQuestionButton';
 
 export default function SimuladorPage() {
   const router = useRouter();
@@ -142,6 +143,7 @@ export default function SimuladorPage() {
               {currentQuestion.theme.name}
             </span>
           )}
+          <FlagQuestionButton questionId={currentQuestion.id} className="ml-auto" />
         </div>
 
         {/* Viñeta */}

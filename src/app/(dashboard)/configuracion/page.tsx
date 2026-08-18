@@ -9,6 +9,9 @@ import { useThemesBySubcategory } from '@/features/question-bank/hooks/useThemes
 import { deleteSubcategoryAction, deleteThemeAction } from '@/features/question-bank/actions/deleteSubcategoryAndTheme';
 import { resetPriorityScoreAction } from '@/features/training/actions/resetPriorityScore';
 import { resetAllFlashcardsProgressAction } from '@/features/flashcards/actions/updateProgress';
+import { useFlaggedQuestions } from '@/features/question-bank/hooks/useFlaggedQuestions';
+import { deleteQuestionAction } from '@/features/question-bank/actions/deleteQuestion';
+import { FlagQuestionButton } from '@/components/FlagQuestionButton';
 export default function ConfiguracionPage() {
   const queryClient = useQueryClient();
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
@@ -18,6 +21,9 @@ export default function ConfiguracionPage() {
   const [deleteType, setDeleteType] = useState<'subcategory' | 'theme' | null>(null);
   const [isResettingFlashcards, setIsResettingFlashcards] = useState(false);
   const [isResettingScore, setIsResettingScore] = useState(false);
+  const [deletingFlaggedId, setDeletingFlaggedId] = useState<string | null>(null);
+
+  const { data: flaggedQuestions, isLoading: flaggedLoading } = useFlaggedQuestions();
 
   const { data: specialties } = useSpecialties();
   const { data: subcategories } = useSubcategoriesBySpecialty(selectedSpecialty || null);
@@ -90,6 +96,26 @@ export default function ConfiguracionPage() {
     finally { setIsResettingScore(false); }
   }
 
+  async function handleDeleteFlaggedQuestion(questionId: string) {
+    if (!confirm('⚠️ ¿Eliminar esta pregunta del banco?\n\nNo se puede deshacer.')) return;
+    setDeletingFlaggedId(questionId);
+    try {
+      const r = await deleteQuestionAction(questionId);
+      if (r.success) {
+        // El borrado en cascada de la migración 0005 ya quita la fila de
+        // flagged_questions automáticamente — solo hay que refrescar la lista.
+        queryClient.invalidateQueries({ queryKey: ['flaggedQuestions'] });
+        queryClient.invalidateQueries({ queryKey: ['flaggedQuestionIds'] });
+      } else {
+        alert(`Error: ${r.error}`);
+      }
+    } catch {
+      alert('Error al eliminar la pregunta.');
+    } finally {
+      setDeletingFlaggedId(null);
+    }
+  }
+
   const inp = 'w-full rounded-xl border border-indigo-300/50 bg-white/75 px-4 py-2.5 text-[13px] text-[#1e1b4b] outline-none transition-colors focus:border-indigo-400 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white/85 dark:focus:border-indigo-400';
   const lbl = 'mb-1.5 block text-[12px] font-medium uppercase tracking-wider text-slate-500 dark:text-white/35';
   const cardBase = 'rounded-xl border border-indigo-300/50 bg-white/70 p-5 backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.04]';
@@ -134,6 +160,77 @@ export default function ConfiguracionPage() {
             <button onClick={handleResetPriorityScore} disabled={isResettingScore} className="w-full rounded-xl bg-violet-500 py-2.5 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40">
               {isResettingScore ? '⏳ Reiniciando...' : '🗑️ Reiniciar historial de respuestas'}
             </button>
+          </div>
+
+          {/* Preguntas marcadas para revisión */}
+          <div className={cardBase}>
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-[14px] font-medium text-amber-700 dark:text-amber-300">🚩 Preguntas marcadas</p>
+              {flaggedQuestions && flaggedQuestions.length > 0 && (
+                <span className="rounded-full bg-amber-100/80 px-2.5 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
+                  {flaggedQuestions.length}
+                </span>
+              )}
+            </div>
+
+            {flaggedLoading && (
+              <p className="text-[13px] text-slate-500 dark:text-white/35">Cargando…</p>
+            )}
+
+            {!flaggedLoading && (!flaggedQuestions || flaggedQuestions.length === 0) && (
+              <p className="text-[13px] text-slate-500 dark:text-white/35">
+                No hay preguntas marcadas. Cualquiera del grupo puede marcar una pregunta para
+                revisión desde el botón de bandera mientras estudia — aparecerá aquí para
+                editarla o eliminarla.
+              </p>
+            )}
+
+            {!flaggedLoading && flaggedQuestions && flaggedQuestions.length > 0 && (
+              <div className="space-y-2.5">
+                {flaggedQuestions.map((fq: any) => (
+                  <div
+                    key={fq.flagId}
+                    className="rounded-xl border border-amber-300/50 bg-amber-50/60 p-4 dark:border-amber-400/20 dark:bg-amber-500/[0.05]"
+                  >
+                    <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                      {fq.specialtyName && (
+                        <span className="rounded-full border border-indigo-300/50 bg-indigo-100/60 px-2.5 py-0.5 text-[11px] text-indigo-700 dark:border-indigo-400/20 dark:bg-indigo-500/15 dark:text-indigo-300">
+                          {fq.specialtyName}
+                        </span>
+                      )}
+                      {fq.subcategoryName && (
+                        <span className="rounded-full border border-indigo-300/50 bg-white/70 px-2.5 py-0.5 text-[11px] text-slate-600 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/45">
+                          {fq.subcategoryName}
+                        </span>
+                      )}
+                      {fq.themeName && (
+                        <span className="rounded-full border border-amber-300/50 bg-amber-100/60 px-2.5 py-0.5 text-[11px] text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-300">
+                          {fq.themeName}
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="mb-3 line-clamp-2 text-[13px] text-slate-700 dark:text-white/70">
+                      {fq.vignette}
+                    </p>
+
+                    <div className="flex items-center gap-2">
+                      {/* Mismo botón que en las pantallas de estudio: si alguien no
+                          está de acuerdo con la marca, la quita aquí mismo sin
+                          tener que ir a buscar la pregunta en su modo original. */}
+                      <FlagQuestionButton questionId={fq.questionId} />
+                      <button
+                        onClick={() => handleDeleteFlaggedQuestion(fq.questionId)}
+                        disabled={deletingFlaggedId === fq.questionId}
+                        className="flex-1 rounded-xl bg-rose-600 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                      >
+                        {deletingFlaggedId === fq.questionId ? '⏳ Eliminando...' : '🗑️ Eliminar pregunta'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Zona de peligro — eliminar subcategorías */}

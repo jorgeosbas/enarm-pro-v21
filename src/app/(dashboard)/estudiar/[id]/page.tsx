@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { recordAnswerAction } from '@/features/question-bank/actions/recordAnswer';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { shuffleArray } from '@/lib/utils/shuffle';
+import { FlagQuestionButton } from '@/components/FlagQuestionButton';
 
 interface QuestionDetail {
   id: string;
@@ -165,7 +166,7 @@ export default function EstudiarPregunta({ params }: { params: any }) {
             </span>
           )}
           <span
-            className={`ml-auto text-[11px] font-semibold ${
+            className={`text-[11px] font-semibold ${
               question.difficulty === 'facil'
                 ? 'text-emerald-600 dark:text-emerald-400'
                 : question.difficulty === 'media'
@@ -175,6 +176,7 @@ export default function EstudiarPregunta({ params }: { params: any }) {
           >
             {question.difficulty}
           </span>
+          <FlagQuestionButton questionId={question.id} className="ml-auto" />
         </div>
 
         {/* Viñeta */}

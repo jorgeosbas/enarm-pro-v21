@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FlashcardWithProgress, FlashcardRating } from '@/features/flashcards/types';
+import { FlagQuestionButton } from '@/components/FlagQuestionButton';
 
 interface FlashcardCardProps {
   flashcard: FlashcardWithProgress;
@@ -72,9 +73,10 @@ export function FlashcardCard({
       {/* Mini stats */}
       <div className="mb-4 flex items-center justify-between text-[12px] text-slate-500 dark:text-white/30">
         <span>Tarjeta {currentIndex + 1} de {totalCards}</span>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
           <span>Estabilidad: {flashcard.progress.stability.toFixed(1)}</span>
           <span>Dificultad: {flashcard.progress.difficulty.toFixed(1)}/10</span>
+          <FlagQuestionButton questionId={flashcard.id} />
         </div>
       </div>
 

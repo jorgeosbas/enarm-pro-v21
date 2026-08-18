@@ -7,6 +7,7 @@ import { useQuestionsBySpecialty } from '@/features/question-bank/hooks/useQuest
 import { recordAnswerAction } from '@/features/question-bank/actions/recordAnswer';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { shuffleArray } from '@/lib/utils/shuffle';
+import { FlagQuestionButton } from '@/components/FlagQuestionButton';
 
 export default function EstudiarFlexiblePage() {
   const router = useRouter();
@@ -158,6 +159,9 @@ export default function EstudiarFlexiblePage() {
             <span className="rounded-full border border-amber-300/50 bg-amber-100/60 px-3 py-1 text-[12px] text-amber-700 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-300">
               {currentQuestion.theme.name}
             </span>
+          )}
+          {currentQuestion?.id && (
+            <FlagQuestionButton questionId={currentQuestion.id} className="ml-auto" />
           )}
         </div>
 

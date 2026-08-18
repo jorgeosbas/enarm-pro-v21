@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useTrainingQuestions } from '@/features/training/hooks/useTrainingQuestions';
 import { recordAnswerAction } from '@/features/question-bank/actions/recordAnswer';
 import { shuffleArray } from '@/lib/utils/shuffle';
+import { FlagQuestionButton } from '@/components/FlagQuestionButton';
 
 export default function EntrenamientoPage() {
   const router = useRouter();
@@ -176,6 +177,9 @@ export default function EntrenamientoPage() {
           >
             ★ {importanceLabel(currentQuestion?.importance ?? 3)}
           </span>
+          {currentQuestion?.id && (
+            <FlagQuestionButton questionId={currentQuestion.id} className="ml-2" />
+          )}
         </div>
 
         {/* Viñeta */}
