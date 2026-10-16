@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
+import { fetchAllPages, fetchOptionsByQuestionIds, groupOptionsByQuestion } from '@/lib/supabase/fetchAll';
 
 export interface QuestionForStudy {
   id: string;
@@ -77,20 +78,21 @@ export function useQuestionsBySpecialty(specialtyId: string | null) {
 
       const questionIds = (questions as any[]).map((q: any) => q.id);
 
-      // Traer opciones (solo de las preguntas obtenidas arriba)
-      const { data: options, error: optionsError } = await supabase
-        .from('question_options')
-        .select('id, question_id, label, content, is_correct')
-        .in('question_id', questionIds);
-
-      if (optionsError) return [];
+      // Traer opciones (solo de las preguntas obtenidas arriba), en grupos
+      // de 100 ids y paginadas (límite de 1000 filas por consulta)
+      let optionsByQuestion;
+      try {
+        optionsByQuestion = groupOptionsByQuestion(
+          await fetchOptionsByQuestionIds(supabase, questionIds)
+        );
+      } catch {
+        return [];
+      }
 
       return questions
         .map((q: any) => ({
           ...q,
-          options: (options || [])
-            .filter((opt: any) => opt.question_id === q.id)
-            .sort((a: any, b: any) => a.label.localeCompare(b.label)),
+          options: optionsByQuestion.get(q.id) ?? [],
         }))
         .sort(() => Math.random() - 0.5) as QuestionForStudy[];
     },

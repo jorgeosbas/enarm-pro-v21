@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
+import { fetchAllPages, fetchOptionsByQuestionIds, groupOptionsByQuestion } from '@/lib/supabase/fetchAll';
 
 export interface QuestionWithOptions {
   id: string;
@@ -36,7 +37,10 @@ export function useQuestions(subcategoryId?: string | null) {
     queryFn: async () => {
       const supabase = createClient();
 
-      let query = supabase
+      // La consulta se arma dentro de una función para poder repetirla por
+      // páginas (Supabase devuelve máx. 1000 filas por consulta).
+      const buildQuery = (from: number, to: number) => {
+        let query = supabase
         .from('questions')
         .select(
           `
@@ -55,32 +59,30 @@ export function useQuestions(subcategoryId?: string | null) {
           theme:themes(id, name)
         `
         )
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true });
 
-      if (subcategoryId) {
-        query = query.eq('subcategory_id', subcategoryId);
-      }
+        if (subcategoryId) {
+          query = query.eq('subcategory_id', subcategoryId);
+        }
 
-      const { data: questions, error: questionsError } = await query;
+        return query.range(from, to);
+      };
 
-      if (questionsError) throw questionsError;
+      const questions = await fetchAllPages(buildQuery);
 
-      if (!questions || questions.length === 0) return [];
+      if (questions.length === 0) return [];
 
       const questionIds = (questions as any[]).map((q: any) => q.id);
 
-      const { data: options, error: optionsError } = await supabase
-        .from('question_options')
-        .select('id, question_id, label, content, is_correct')
-        .in('question_id', questionIds);
-
-      if (optionsError) throw optionsError;
+      // Opciones en grupos de 100 ids y paginadas (límite de 1000 filas)
+      const optionsByQuestion = groupOptionsByQuestion(
+        await fetchOptionsByQuestionIds(supabase, questionIds)
+      );
 
       return questions.map((q: any) => ({
         ...q,
-        options: (options || [])
-          .filter((opt: any) => opt.question_id === q.id)
-          .sort((a: any, b: any) => a.label.localeCompare(b.label)),
+        options: optionsByQuestion.get(q.id) ?? [],
       })) as QuestionWithOptions[];
     },
   });

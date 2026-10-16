@@ -1,7 +1,5 @@
 'use client';
 
-import { Navigation } from '@/components/Navigation';
-
 interface LoadingScreenProps {
   message?: string;
 }
@@ -18,7 +16,8 @@ export function LoadingScreen({ message = 'Cargando...' }: LoadingScreenProps) {
         style={{ filter: 'blur(80px)' }}
       />
 
-      <div className="relative z-10"><Navigation /></div>
+      {/* La barra de navegación ya la pone el layout de (dashboard); si se
+          repitiera aquí se vería duplicada mientras carga. */}
 
       <div className="relative z-10 flex min-h-[calc(100vh-60px)] flex-col items-center justify-center px-4">
         {/* Anillo pulsante */}

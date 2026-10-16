@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
+import { fetchAllPages, fetchOptionsByQuestionIds, groupOptionsByQuestion } from '@/lib/supabase/fetchAll';
 
 export interface RandomQuestion {
   id: string;
@@ -68,19 +69,15 @@ export function useRandomQuestionsFromSubcategory(subcategoryId: string | null) 
 
       const questionIds = (data as any[]).map((q: any) => q.id);
 
-      const { data: options, error: optionsError } = await supabase
-        .from('question_options')
-        .select('id, question_id, label, content, is_correct')
-        .in('question_id', questionIds);
-
-      if (optionsError) throw optionsError;
+      // Opciones en grupos de 100 ids y paginadas (límite de 1000 filas)
+      const optionsByQuestion = groupOptionsByQuestion(
+        await fetchOptionsByQuestionIds(supabase, questionIds)
+      );
 
       return data
         .map((q: any) => ({
           ...q,
-          options: (options || [])
-            .filter((opt: any) => opt.question_id === q.id)
-            .sort((a: any, b: any) => a.label.localeCompare(b.label)),
+          options: optionsByQuestion.get(q.id) ?? [],
         }))
         .sort(() => Math.random() - 0.5) as RandomQuestion[];
     },
@@ -97,7 +94,8 @@ export function useRandomQuestionsFromAll() {
     queryFn: async () => {
       const supabase = createClient();
 
-      const { data, error } = await supabase
+      const data = await fetchAllPages((from, to) =>
+        supabase
         .from('questions')
         .select(
           `
@@ -116,27 +114,24 @@ export function useRandomQuestionsFromAll() {
           theme:themes(id, name)
         `
         )
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
+        .range(from, to)
+      );
 
       if (!data || data.length === 0) return [];
 
       const questionIds = (data as any[]).map((q: any) => q.id);
 
-      const { data: options, error: optionsError } = await supabase
-        .from('question_options')
-        .select('id, question_id, label, content, is_correct')
-        .in('question_id', questionIds);
-
-      if (optionsError) throw optionsError;
+      // Opciones en grupos de 100 ids y paginadas (límite de 1000 filas)
+      const optionsByQuestion = groupOptionsByQuestion(
+        await fetchOptionsByQuestionIds(supabase, questionIds)
+      );
 
       return data
         .map((q: any) => ({
           ...q,
-          options: (options || [])
-            .filter((opt: any) => opt.question_id === q.id)
-            .sort((a: any, b: any) => a.label.localeCompare(b.label)),
+          options: optionsByQuestion.get(q.id) ?? [],
         }))
         .sort(() => Math.random() - 0.5) as RandomQuestion[];
     },
