@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { FlashcardRating } from '../types';
 import { createCardFromProgress, calculateFSRS, convertRating, getStateString } from '../services/fsrsService';
+import { STUDY_TIMEZONE, getLocalDateString } from '@/lib/utils/localDay';
 
 /**
  * Inicializar SOLO preguntas que NUNCA hayan sido registradas como flashcards
@@ -150,7 +151,8 @@ export async function initializeAllFlashcardsAction() {
  */
 export async function updateFlashcardProgressAction(
   questionId: string,
-  rating: FlashcardRating
+  rating: FlashcardRating,
+  sessionDate?: string
 ) {
   try {
     const supabase = await createClient();
@@ -248,6 +250,29 @@ export async function updateFlashcardProgressAction(
     if (updateError) {
       console.error('[updateFlashcardProgressAction] Error en Upsert:', updateError);
       return { success: false, error: updateError.message };
+    }
+
+    // 7b. Marcar la tarjeta como TERMINADA en la lista del día (solo si la
+    //     calificación no fue "Repetir"). Es lo que hace que el contador
+    //     "X de Y" se mantenga al salir y volver a entrar. No toca FSRS:
+    //     el progreso ya quedó guardado arriba. Si esto falla, NO se
+    //     devuelve error (la calificación ya se guardó) — solo se registra.
+    if (rating !== 'again') {
+      const dayToMark =
+        typeof sessionDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(sessionDate)
+          ? sessionDate
+          : getLocalDateString(now, STUDY_TIMEZONE);
+
+      const { error: markError } = await supabase
+        .from('flashcard_daily_cards')
+        .update({ completed: true, completed_at: now.toISOString() })
+        .eq('user_id', user.id)
+        .eq('session_date', dayToMark)
+        .eq('question_id', questionId);
+
+      if (markError) {
+        console.error('[updateFlashcardProgressAction] No se pudo marcar terminada:', markError);
+      }
     }
 
     // 8. Revalidación inmediata de la caché de Next.js

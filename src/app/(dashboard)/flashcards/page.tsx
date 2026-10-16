@@ -16,8 +16,13 @@ export default function FlashcardsPage() {
 
   // queue = null significa "Estamos cargando la verdad absoluta"
   const [queue, setQueue] = useState<FlashcardWithProgress[] | null>(null);
-  const [completedCount, setCompletedCount] = useState(0);
-  const [totalInitial, setTotalInitial] = useState(0);
+  // Tarjetas TERMINADAS hoy (Fácil / Bien / Difícil). "Repetir" no cuenta.
+  // Viene de la lista del día guardada, por eso se conserva al salir y volver.
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  // Total de la lista del día (el "Y" de "X de Y").
+  const [totalCards, setTotalCards] = useState(0);
+  // Día (hora local) de la lista con la que se abrió la pantalla.
+  const [sessionDate, setSessionDate] = useState<string | undefined>(undefined);
   const [isRating, setIsRating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -45,18 +50,18 @@ export default function FlashcardsPage() {
           );
         }
 
-        // 2. Pedimos los datos frescos a Supabase directo (ignorando cachés)
+        // 2. Pedimos la sesión del día a Supabase directo (ignorando cachés).
+        //    La primera vez del día arma la lista; después la reutiliza.
         const { data, error } = await refetch();
 
         if (error) throw error;
 
-        const finalData = data || [];
-
-        // 3. Establecemos la cola definitiva
+        // 3. Establecemos la cola y el contador del día
         if (isMounted) {
-          setQueue(finalData);
-          setTotalInitial(finalData.length);
-          setCompletedCount(0);
+          setQueue(data?.queue ?? []);
+          setTotalCards(data?.total ?? 0);
+          setCompletedIds(new Set(data?.completedIds ?? []));
+          setSessionDate(data?.sessionDate);
         }
       } catch (err) {
         console.error('[flashcards/page] Error al refrescar datos:', err);
@@ -136,7 +141,7 @@ export default function FlashcardsPage() {
     setIsRating(true);
     try {
       const targetQuestionId = currentFlashcard.progress?.question_id || currentFlashcard.id;
-      const res = await updateFlashcardProgressAction(targetQuestionId, rating);
+      const res = await updateFlashcardProgressAction(targetQuestionId, rating, sessionDate);
 
       if (!res.success) {
         if (res.error === 'session_expired') {
@@ -156,7 +161,13 @@ export default function FlashcardsPage() {
           return [...prev.slice(1), first];
         });
       } else {
-        setCompletedCount((prev) => prev + 1);
+        // Se guarda el id (no un contador) para que una tarjeta nunca se
+        // cuente dos veces aunque FSRS la vuelva a pedir el mismo día.
+        setCompletedIds((prev) => {
+          const next = new Set(prev);
+          next.add(targetQuestionId);
+          return next;
+        });
         setQueue((prev) => (prev === null ? null : prev.slice(1)));
       }
     } catch (err) {
@@ -169,8 +180,9 @@ export default function FlashcardsPage() {
 
   if (!currentFlashcard) return null;
 
-  const percentComplete = totalInitial > 0
-    ? Math.min(100, Math.round((completedCount / totalInitial) * 100))
+  const completedCount = completedIds.size;
+  const percentComplete = totalCards > 0
+    ? Math.min(100, Math.round((completedCount / totalCards) * 100))
     : 0;
 
   return (
@@ -185,7 +197,7 @@ export default function FlashcardsPage() {
         <div className="mb-6">
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[13px] font-medium text-[#1e1b4b] dark:text-white/80">
-              Progreso: {completedCount} de {totalInitial}
+              Progreso: {completedCount} de {totalCards}
             </span>
             <span className="text-[12px] text-slate-500 dark:text-white/35">
               {percentComplete}% · {queue.length} en cola
@@ -225,7 +237,7 @@ export default function FlashcardsPage() {
             onRate={handleRate}
             isLoading={isRating}
             currentIndex={completedCount}
-            totalCards={totalInitial}
+            totalCards={totalCards}
           />
         </div>
 
