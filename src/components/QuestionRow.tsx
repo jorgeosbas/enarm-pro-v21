@@ -13,6 +13,7 @@ interface QuestionRowProps {
   };
   isDeleting: boolean;
   onDelete: (e: React.MouseEvent, questionId: string) => void;
+  onEdit: (questionId: string) => void;
 }
 
 /**
@@ -21,7 +22,7 @@ interface QuestionRowProps {
  * React solo vuelve a dibujar las filas cuyas props realmente cambiaron
  * (por ejemplo, la que está en proceso de borrado), no la lista completa.
  */
-function QuestionRowComponent({ question, isDeleting, onDelete }: QuestionRowProps) {
+function QuestionRowComponent({ question, isDeleting, onDelete, onEdit }: QuestionRowProps) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-indigo-300/50 bg-white/70 p-4 backdrop-blur-md transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:hover:bg-white/[0.07]">
       <Link href={`/estudiar/${question.id}`} className="flex-1 min-w-0">
@@ -46,6 +47,17 @@ function QuestionRowComponent({ question, isDeleting, onDelete }: QuestionRowPro
           {question.vignette}
         </p>
       </Link>
+
+      <button
+        onClick={() => onEdit(question.id)}
+        className="flex-shrink-0 rounded-xl border border-indigo-300/50 bg-indigo-100/55 p-2 text-indigo-500 transition-colors hover:bg-indigo-100/80 dark:border-indigo-400/20 dark:bg-indigo-500/[0.07] dark:text-indigo-300"
+        title="Editar pregunta"
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 20h9" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+        </svg>
+      </button>
 
       <button
         onClick={(e) => onDelete(e, question.id)}

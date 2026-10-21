@@ -12,6 +12,7 @@ import { resetAllFlashcardsProgressAction } from '@/features/flashcards/actions/
 import { useFlaggedQuestions } from '@/features/question-bank/hooks/useFlaggedQuestions';
 import { deleteQuestionAction } from '@/features/question-bank/actions/deleteQuestion';
 import { FlagQuestionButton } from '@/components/FlagQuestionButton';
+import { EditQuestionModal } from '@/components/EditQuestionModal';
 export default function ConfiguracionPage() {
   const queryClient = useQueryClient();
   const [selectedSpecialty, setSelectedSpecialty] = useState('');
@@ -22,6 +23,7 @@ export default function ConfiguracionPage() {
   const [isResettingFlashcards, setIsResettingFlashcards] = useState(false);
   const [isResettingScore, setIsResettingScore] = useState(false);
   const [deletingFlaggedId, setDeletingFlaggedId] = useState<string | null>(null);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
 
   const { data: flaggedQuestions, isLoading: flaggedLoading } = useFlaggedQuestions();
 
@@ -220,6 +222,12 @@ export default function ConfiguracionPage() {
                           tener que ir a buscar la pregunta en su modo original. */}
                       <FlagQuestionButton questionId={fq.questionId} />
                       <button
+                        onClick={() => setEditingQuestionId(fq.questionId)}
+                        className="flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90"
+                      >
+                        ✏️ Editar
+                      </button>
+                      <button
                         onClick={() => handleDeleteFlaggedQuestion(fq.questionId)}
                         disabled={deletingFlaggedId === fq.questionId}
                         className="flex-1 rounded-xl bg-rose-600 py-2 text-[13px] font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
@@ -232,6 +240,8 @@ export default function ConfiguracionPage() {
               </div>
             )}
           </div>
+
+          <EditQuestionModal questionId={editingQuestionId} onClose={() => setEditingQuestionId(null)} />
 
           {/* Zona de peligro — eliminar subcategorías */}
           <div className="rounded-xl border border-rose-300/50 bg-rose-100/55 p-5 backdrop-blur-md dark:border-rose-400/20 dark:bg-rose-500/[0.07]">

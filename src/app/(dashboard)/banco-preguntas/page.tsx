@@ -10,6 +10,7 @@ import { useSubcategoriesBySpecialty } from '@/features/question-bank/hooks/useS
 import { useThemesBySubcategory } from '@/features/question-bank/hooks/useThemesBySubcategory';
 import { deleteQuestionAction } from '@/features/question-bank/actions/deleteQuestion';
 import { QuestionRow } from '@/components/QuestionRow';
+import { EditQuestionModal } from '@/components/EditQuestionModal';
 
 export default function BancoPreguntas() {
   const queryClient = useQueryClient();
@@ -18,6 +19,9 @@ export default function BancoPreguntas() {
   const [selectedTheme, setSelectedTheme] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Pregunta que se está editando (null = ventana de edición cerrada)
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const handleEditQuestion = useCallback((questionId: string) => setEditingQuestionId(questionId), []);
 
   const { data: specialties, isLoading: specialtiesLoading } = useSpecialties();
   const { data: subcategories, isLoading: subcatsLoading } = useSubcategoriesBySpecialty(selectedSpecialty || null);
@@ -207,12 +211,15 @@ export default function BancoPreguntas() {
                   question={question}
                   isDeleting={deletingId === question.id}
                   onDelete={handleDeleteQuestion}
+                  onEdit={handleEditQuestion}
                 />
               ))}
             </div>
           </div>
         )}
       </main>
+
+      <EditQuestionModal questionId={editingQuestionId} onClose={() => setEditingQuestionId(null)} />
     </div>
   );
 }
