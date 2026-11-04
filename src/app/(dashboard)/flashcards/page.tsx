@@ -17,12 +17,13 @@ export default function FlashcardsPage() {
   // queue = null significa "Estamos cargando la verdad absoluta"
   const [queue, setQueue] = useState<FlashcardWithProgress[] | null>(null);
   // Tarjetas TERMINADAS hoy (Fácil / Bien / Difícil). "Repetir" no cuenta.
-  // Viene de la lista del día guardada, por eso se conserva al salir y volver.
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   // Total de la lista del día (el "Y" de "X de Y").
   const [totalCards, setTotalCards] = useState(0);
   // Día (hora local) de la lista con la que se abrió la pantalla.
   const [sessionDate, setSessionDate] = useState<string | undefined>(undefined);
+  // Cuántos temas activos tiene el usuario (0 = debe elegir temas primero).
+  const [activeThemeCount, setActiveThemeCount] = useState<number>(0);
   const [isRating, setIsRating] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -33,14 +34,6 @@ export default function FlashcardsPage() {
       try {
         // 1. Registrar SIEMPRE primero las preguntas del banco que el
         //    usuario aún no tiene en su progreso de flashcards.
-        //
-        //    ANTES esto solo corría "si la cola venía vacía". Con el tope
-        //    diario de tarjetas nuevas (MAX_NEW_CARDS_PER_DAY en
-        //    useDueFlashcards.ts), la cola casi nunca está vacía en un
-        //    banco compartido activo — así que las preguntas recién
-        //    importadas por cualquiera del grupo podían tardar semanas en
-        //    registrarse, o nunca hacerlo. Ahora se registra en cada
-        //    entrada a la pantalla, sin condición.
         const initResult = await initializeAllFlashcardsAction();
         if (!initResult.success) {
           // No es fatal: seguimos con la cola que ya exista.
@@ -51,23 +44,23 @@ export default function FlashcardsPage() {
         }
 
         // 2. Pedimos la sesión del día a Supabase directo (ignorando cachés).
-        //    La primera vez del día arma la lista; después la reutiliza.
         const { data, error } = await refetch();
 
         if (error) throw error;
 
-        // 3. Establecemos la cola y el contador del día
+        // 3. Establecemos la cola, el contador del día y los temas activos
         if (isMounted) {
           setQueue(data?.queue ?? []);
           setTotalCards(data?.total ?? 0);
           setCompletedIds(new Set(data?.completedIds ?? []));
           setSessionDate(data?.sessionDate);
+          setActiveThemeCount(data?.activeThemeCount ?? 0);
         }
       } catch (err) {
         console.error('[flashcards/page] Error al refrescar datos:', err);
         if (isMounted) {
           setErrorMsg('Hubo un error de conexión al cargar tus tarjetas.');
-          setQueue([]); // Evitamos que la pantalla se quede cargando infinitamente
+          setQueue([]);
         }
       }
     }
@@ -80,7 +73,7 @@ export default function FlashcardsPage() {
   }, [refetch]);
 
   // ==========================================
-  // ESTADO 1: Cargando (Evita los fantasmas)
+  // ESTADO 1: Cargando
   // ==========================================
   if (queue === null) {
     return (
@@ -95,7 +88,7 @@ export default function FlashcardsPage() {
     return (
       <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
         <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
-        
+
         <main className="relative z-10 mx-auto max-w-2xl px-4 pt-10">
           <div className="rounded-xl border border-rose-300/50 bg-rose-100/55 p-5 backdrop-blur-md dark:border-rose-400/20 dark:bg-rose-500/[0.07]">
             <p className="text-[13px] text-rose-700 dark:text-rose-300">{errorMsg}</p>
@@ -109,21 +102,43 @@ export default function FlashcardsPage() {
   // ESTADO 3: Sin tarjetas
   // ==========================================
   if (queue.length === 0) {
+    const noActiveThemes = activeThemeCount === 0;
+
     return (
       <div className="relative min-h-screen bg-[#e9e3fb] dark:bg-[#0a0a14]">
         <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
         <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
-        
+
         <main className="relative z-10 mx-auto max-w-2xl px-4 pb-24 pt-10 text-center">
           <div className="rounded-2xl border border-emerald-300/50 bg-white/70 p-12 backdrop-blur-md dark:border-emerald-400/20 dark:bg-white/[0.04]">
-            <div className="mb-4 text-5xl">🎉</div>
-            <h2 className="mb-2 text-[18px] font-medium text-[#1e1b4b] dark:text-white">¡Al día con tus flashcards!</h2>
-            <p className="mb-6 text-[13px] text-slate-500 dark:text-white/40">
-              Has completado todas las tarjetas de hoy. Vuelve mañana para continuar.
-            </p>
-            <button onClick={() => router.push('/banco-preguntas')} className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90">
-              Ir al Banco de Preguntas
-            </button>
+            {noActiveThemes ? (
+              <>
+                <div className="mb-4 text-5xl">📚</div>
+                <h2 className="mb-2 text-[18px] font-medium text-[#1e1b4b] dark:text-white">Aún no tienes temas activos</h2>
+                <p className="mb-6 text-[13px] text-slate-500 dark:text-white/40">
+                  Elige los temas que ya estudiaste para empezar a recibir flashcards.
+                </p>
+                <button onClick={() => router.push('/flashcards/temas')} className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90">
+                  Elegir temas
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="mb-4 text-5xl">🎉</div>
+                <h2 className="mb-2 text-[18px] font-medium text-[#1e1b4b] dark:text-white">¡Al día con tus flashcards!</h2>
+                <p className="mb-6 text-[13px] text-slate-500 dark:text-white/40">
+                  Has completado todas las tarjetas de hoy. Vuelve mañana para continuar.
+                </p>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <button onClick={() => router.push('/banco-preguntas')} className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 px-6 py-2.5 text-[14px] font-medium text-white transition-opacity hover:opacity-90">
+                    Ir al Banco de Preguntas
+                  </button>
+                  <button onClick={() => router.push('/flashcards/temas')} className="rounded-xl border border-indigo-300/50 bg-white/65 px-6 py-2.5 text-[14px] text-slate-700 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/60">
+                    Elegir más temas
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </main>
       </div>
@@ -190,8 +205,6 @@ export default function FlashcardsPage() {
       <div className="pointer-events-none fixed left-[-80px] top-[-80px] h-[340px] w-[340px] rounded-full bg-indigo-400/20 dark:bg-indigo-500/18" style={{ filter: 'blur(90px)' }} />
       <div className="pointer-events-none fixed right-[20px] top-[60px] h-[280px] w-[280px] rounded-full bg-purple-400/16 dark:bg-purple-500/14" style={{ filter: 'blur(80px)' }} />
 
-      
-
       <main className="relative z-10 mx-auto max-w-2xl px-4 pb-24 pt-6 md:pb-10 lg:px-6">
         {/* Barra de progreso */}
         <div className="mb-6">
@@ -241,12 +254,15 @@ export default function FlashcardsPage() {
           />
         </div>
 
-        <div className="mt-6 flex gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
           <button onClick={() => router.push('/banco-preguntas')} className="rounded-xl border border-indigo-300/50 bg-white/65 px-4 py-2.5 text-[13px] text-slate-700 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
             ← Banco
           </button>
           <button onClick={() => router.push('/dashboard')} className="rounded-xl border border-indigo-300/50 bg-white/65 px-4 py-2.5 text-[13px] text-slate-700 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
             Dashboard
+          </button>
+          <button onClick={() => router.push('/flashcards/temas')} className="rounded-xl border border-indigo-300/50 bg-white/65 px-4 py-2.5 text-[13px] text-slate-700 backdrop-blur-md transition-colors hover:bg-white/80 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/50">
+            Temas
           </button>
         </div>
       </main>

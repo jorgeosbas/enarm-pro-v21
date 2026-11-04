@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
+import { countPendingFlashcardsToday } from '@/features/flashcards/hooks/useDueFlashcards';
 
 export interface DashboardStats {
   flashcardsDueCount: number;
@@ -45,12 +46,8 @@ export function useDashboardStats() {
       const now = new Date();
       const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-      // ── 1. Flashcards pendientes ──────────────────────────────────────────
-      const { data: dueFlashcards } = await supabase
-        .from('user_flashcard_progress')
-        .select('id')
-        .eq('user_id', userId)
-        .lte('due_date', now.toISOString());
+      // ── 1. Flashcards pendientes HOY (respeta temas activos y tope diario) ──
+      const pendingFlashcards = await countPendingFlashcardsToday(supabase, userId);
 
       // ── 2. Flashcards dominadas ───────────────────────────────────────────
       const { count: dominatedCount } = await supabase
@@ -61,17 +58,14 @@ export function useDashboardStats() {
         .gte('reps', 3);
 
       // ── 3. Total preguntas ────────────────────────────────────────────────
-      // Banco Compartido: el conteo es del banco completo, no solo de las
-      // preguntas que importó este usuario. Antes filtraba por user_id, por
-      // lo que un usuario nuevo veía siempre "0 preguntas importadas" aunque
-      // el banco ya tuviera contenido.
+      // Banco Compartido: el conteo es del banco completo.
       const { count: totalQuestions } = await supabase
         .from('questions')
         .select('id', { count: 'exact', head: true });
 
       // ── 4. Answer logs — query simple sin joins anidados ──────────────────
       // Separamos en dos queries para evitar el error 400 de Supabase
-      // que ocurre con joins profundos (answer_logs → questions → subcategories → specialties)
+      // que ocurre con joins profundos.
       const { data: rawLogs, error: logsError } = await supabase
         .from('answer_logs')
         .select('id, question_id, is_correct, answered_at')
@@ -86,7 +80,6 @@ export function useDashboardStats() {
       const totalAnswers = logs.length;
 
       // ── 5. Traer especialidades de las preguntas respondidas ──────────────
-      // Solo hacemos esta query si hay respuestas
       const specialtyByQuestion: Record<string, string> = {};
       const vignetteByQuestion: Record<string, string> = {};
 
@@ -130,7 +123,7 @@ export function useDashboardStats() {
       const recentAnswers = logs.slice(0, 5).map((r: any) => ({
         question_id: r.question_id || '',
         is_correct: r.is_correct,
-        created_at: r.answered_at,  // campo real: answered_at
+        created_at: r.answered_at,
         vignette_short: (vignetteByQuestion[r.question_id] || '').slice(0, 48),
         specialty_name: specialtyByQuestion[r.question_id] || 'General',
       }));
@@ -205,7 +198,7 @@ export function useDashboardStats() {
         .sort((a, b) => a.date.localeCompare(b.date));
 
       return {
-        flashcardsDueCount: dueFlashcards?.length || 0,
+        flashcardsDueCount: pendingFlashcards,
         flashcardsDominatedCount: dominatedCount || 0,
         totalQuestions: totalQuestions || 0,
         totalAnswers,
@@ -220,8 +213,8 @@ export function useDashboardStats() {
         dailyAccuracy,
       };
     },
-    staleTime: 0,               // Siempre refetch al volver al dashboard
-    refetchOnWindowFocus: true, // Actualiza al regresar a la pestaña
-    refetchOnMount: true,       // Actualiza al montar el componente
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 }

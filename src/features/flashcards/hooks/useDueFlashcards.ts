@@ -11,46 +11,30 @@ import { FlashcardWithProgress } from '../types';
 
 /**
  * Tope diario de tarjetas NUEVAS que entran a la lista del día.
- *
- * Evita el "efecto avalancha": al importar un lote grande de preguntas,
- * todas se inicializan con due_date en el pasado y entrarían de golpe.
- * Los repasos (que FSRS ya programó y son obligatorios) nunca se limitan.
- *
- * El tope se aplica UNA sola vez al armar la lista del día (ver
- * createTodaySnapshot), contando las nuevas que ya debutaron hoy (hora
- * local) por si la lista se arma a mitad del día.
+ * Los repasos (que FSRS ya programó) nunca se limitan.
+ * Solo cuentan tarjetas de temas ACTIVADOS por el usuario.
  */
 const DAILY_NEW_CARD_LIMIT = 40;
 
-/**
- * Tamaño de cada bloque para la "práctica intercalada por bloques": se
- * ordena por vencimiento y se baraja SOLO dentro de bloques de este
- * tamaño, para romper el agrupamiento por tema sin perder la prioridad
- * de las más atrasadas.
- */
+/** Tamaño de cada bloque para la práctica intercalada por bloques. */
 const SHUFFLE_BLOCK_SIZE = 10;
 
-/** Máximo de ids por consulta `.in(...)` (evita URLs demasiado largas). */
+/** Máximo de ids por consulta `.in(...)`. */
 const IN_CHUNK_SIZE = 100;
 /** Máximo de filas por insert. */
 const INSERT_CHUNK_SIZE = 500;
-/** Tamaño de página de Supabase (por defecto devuelve máx. 1000 filas). */
+/** Tamaño de página de Supabase. */
 const PAGE_SIZE = 1000;
 /** Las listas de días viejos se borran pasado este tiempo. */
 const OLD_LISTS_RETENTION_DAYS = 30;
 
-/**
- * Lo que la pantalla necesita para mostrar la sesión del día.
- *  - total:        cuántas tarjetas componen el día (el "Y" de "X de Y").
- *  - completedIds: tarjetas ya terminadas hoy con Fácil / Bien / Difícil.
- *  - queue:        lo que falta por ver ahora, incluidas las marcadas
- *                  "Repetir" (aunque FSRS las haya programado en unos minutos).
- */
 export interface DailyFlashcardSession {
   sessionDate: string;
   total: number;
   completedIds: string[];
   queue: FlashcardWithProgress[];
+  /** Cuántos temas tiene activados el usuario. 0 = debe elegir temas primero. */
+  activeThemeCount: number;
 }
 
 type SupabaseBrowserClient = ReturnType<typeof createClient>;
@@ -130,6 +114,23 @@ const PROGRESS_SELECT = `
   )
 `;
 
+/** Ids de los temas que el usuario ya activó. */
+async function fetchActiveThemeIds(
+  supabase: SupabaseBrowserClient,
+  userId: string
+): Promise<Set<string>> {
+  const untyped = supabase as unknown as SupabaseClient;
+  const rows = await fetchAllPages((from, to) =>
+    untyped
+      .from('user_active_themes')
+      .select('theme_id')
+      .eq('user_id', userId)
+      .order('theme_id', { ascending: true })
+      .range(from, to)
+  );
+  return new Set(rows.map((r) => String(r.theme_id)));
+}
+
 /** Lista del día guardada (ordenada por posición). */
 async function fetchDailyRows(
   supabase: SupabaseBrowserClient,
@@ -148,16 +149,17 @@ async function fetchDailyRows(
   return rows as DailyRow[];
 }
 
-/** Ids de repasos vencidos ahora (state != new), de más atrasado a menos. */
+/** Ids de repasos vencidos ahora (state != new), de más atrasado a menos, solo de temas activos. */
 async function fetchDueReviewIds(
   supabase: SupabaseBrowserClient,
   userId: string,
-  nowUtc: string
+  nowUtc: string,
+  activeThemes: Set<string>
 ): Promise<string[]> {
   const rows = await fetchAllPages((from, to) =>
     supabase
       .from('user_flashcard_progress')
-      .select('question_id, question:questions!inner(id)')
+      .select('question_id, question:questions!inner(id, theme_id)')
       .eq('user_id', userId)
       .lte('due_date', nowUtc)
       .neq('state', 'new')
@@ -165,7 +167,75 @@ async function fetchDueReviewIds(
       .order('question_id', { ascending: true })
       .range(from, to)
   );
-  return rows.map((r) => String(r.question_id));
+  return rows
+    .filter((r) => activeThemes.has(String(r.question?.theme_id)))
+    .map((r) => String(r.question_id));
+}
+
+/** Ids de tarjetas NUEVAS vencidas de temas activos, hasta `limit`. */
+async function fetchDueNewIds(
+  supabase: SupabaseBrowserClient,
+  userId: string,
+  nowUtc: string,
+  activeThemes: Set<string>,
+  limit: number
+): Promise<string[]> {
+  if (limit <= 0 || activeThemes.size === 0) return [];
+  const rows = await fetchAllPages((from, to) =>
+    supabase
+      .from('user_flashcard_progress')
+      .select('question_id, question:questions!inner(id, theme_id)')
+      .eq('user_id', userId)
+      .lte('due_date', nowUtc)
+      .eq('state', 'new')
+      .order('due_date', { ascending: true })
+      .order('question_id', { ascending: true })
+      .range(from, to)
+  );
+  return rows
+    .filter((r) => activeThemes.has(String(r.question?.theme_id)))
+    .slice(0, limit)
+    .map((r) => String(r.question_id));
+}
+
+/** De los ids dados, cuáles ya vuelven a pedir repaso (due_date <= ahora). */
+async function fetchDueAgainIds(
+  supabase: SupabaseBrowserClient,
+  userId: string,
+  nowUtc: string,
+  ids: string[]
+): Promise<Set<string>> {
+  const result = new Set<string>();
+  for (const part of chunk(ids, IN_CHUNK_SIZE)) {
+    const { data, error } = await supabase
+      .from('user_flashcard_progress')
+      .select('question_id')
+      .eq('user_id', userId)
+      .lte('due_date', nowUtc)
+      .in('question_id', part);
+    if (error) throw error;
+    for (const r of (data ?? []) as unknown as any[]) {
+      result.add(String(r.question_id));
+    }
+  }
+  return result;
+}
+
+/** Cuántas tarjetas nuevas ya debutaron hoy (hora local). */
+async function countDebutsToday(
+  supabase: SupabaseBrowserClient,
+  userId: string,
+  dayStartUtc: string
+): Promise<number> {
+  const { count, error } = await supabase
+    .from('user_flashcard_progress')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .neq('state', 'new')
+    .lte('reps', 1)
+    .gte('last_review', dayStartUtc);
+  if (error) throw error;
+  return count ?? 0;
 }
 
 async function insertDailyRows(
@@ -183,13 +253,10 @@ async function insertDailyRows(
     completed: false,
   }));
 
-  // Cliente sin tipos de tabla: los tipos generados todavía no conocen
-  // flashcard_daily_cards (npm run gen-types los regenera cuando quieras).
+  // Cliente sin tipos de tabla: flashcard_daily_cards no está en los tipos generados.
   const untyped = supabase as unknown as SupabaseClient;
 
   for (const part of chunk(rows, INSERT_CHUNK_SIZE)) {
-    // ignoreDuplicates: si dos pestañas/dispositivos arman la lista a la
-    // vez, la segunda no pisa a la primera.
     const { error } = await untyped
       .from('flashcard_daily_cards')
       .upsert(part, {
@@ -202,54 +269,29 @@ async function insertDailyRows(
 
 /**
  * Arma la lista del día (se llama solo la primera vez que se entra en el día).
- *
- *   0) Cupo de nuevas: DAILY_NEW_CARD_LIMIT menos las que ya debutaron hoy.
- *   A) REPASOS — vencidas con state != 'new'. SIN límite.
- *   B) NUEVAS  — vencidas con state = 'new', topadas al cupo.
- *
- * Se unen y se barajan por bloques (práctica intercalada).
+ *   A) REPASOS: vencidas con state != 'new'. Sin límite.
+ *   B) NUEVAS: vencidas con state = 'new', topadas al cupo. Solo temas activos.
  */
 async function createTodaySnapshot(
   supabase: SupabaseBrowserClient,
   userId: string,
   sessionDate: string,
   nowUtc: string,
-  dayStartUtc: string
+  dayStartUtc: string,
+  activeThemes: Set<string>
 ): Promise<void> {
-  const { count: debutsToday, error: countError } = await supabase
-    .from('user_flashcard_progress')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .neq('state', 'new')
-    .lte('reps', 1)
-    .gte('last_review', dayStartUtc);
+  const debutsToday = await countDebutsToday(supabase, userId, dayStartUtc);
+  const remainingNew = Math.max(0, DAILY_NEW_CARD_LIMIT - debutsToday);
 
-  if (countError) throw countError;
-
-  const remainingNew = Math.max(0, DAILY_NEW_CARD_LIMIT - (debutsToday ?? 0));
-
-  const reviewIds = await fetchDueReviewIds(supabase, userId, nowUtc);
-
-  let newIds: string[] = [];
-  if (remainingNew > 0) {
-    const { data, error } = await supabase
-      .from('user_flashcard_progress')
-      .select('question_id, question:questions!inner(id)')
-      .eq('user_id', userId)
-      .lte('due_date', nowUtc)
-      .eq('state', 'new')
-      .order('due_date', { ascending: true })
-      .limit(remainingNew);
-    if (error) throw error;
-    newIds = ((data ?? []) as unknown as any[]).map((r) => String(r.question_id));
-  }
+  const reviewIds = await fetchDueReviewIds(supabase, userId, nowUtc, activeThemes);
+  const newIds = await fetchDueNewIds(supabase, userId, nowUtc, activeThemes, remainingNew);
 
   const ordered = shuffleInBlocks([...reviewIds, ...newIds], SHUFFLE_BLOCK_SIZE);
   if (ordered.length > 0) {
     await insertDailyRows(supabase, userId, sessionDate, ordered, 0);
   }
 
-  // Limpieza de listas viejas (no es crítica: si falla, no se interrumpe).
+  // Limpieza de listas viejas (no es crítica).
   const cutoffDate = getLocalDateString(
     new Date(Date.now() - OLD_LISTS_RETENTION_DAYS * 24 * 60 * 60 * 1000)
   );
@@ -264,19 +306,18 @@ async function createTodaySnapshot(
 }
 
 /**
- * Si durante el día vence un repaso que no estaba en la lista (por ejemplo,
- * uno que repasaste ayer en la noche y hoy ya le toca), se agrega al final.
- * Las tarjetas NUEVAS no se agregan aquí: su tope se aplica una sola vez.
- * Devuelve true si agregó algo.
+ * Si durante el día vence un repaso que no estaba en la lista, se agrega al final.
+ * Las nuevas NO se agregan aquí: su tope se aplica una sola vez.
  */
 async function topUpDueReviews(
   supabase: SupabaseBrowserClient,
   userId: string,
   sessionDate: string,
   nowUtc: string,
-  existingRows: DailyRow[]
+  existingRows: DailyRow[],
+  activeThemes: Set<string>
 ): Promise<boolean> {
-  const dueIds = await fetchDueReviewIds(supabase, userId, nowUtc);
+  const dueIds = await fetchDueReviewIds(supabase, userId, nowUtc, activeThemes);
   const inList = new Set(existingRows.map((r) => r.question_id));
   const missing = dueIds.filter((id) => !inList.has(id));
   if (missing.length === 0) return false;
@@ -287,20 +328,50 @@ async function topUpDueReviews(
 }
 
 /**
+ * Cuántas flashcards quedan HOY. Lo usa el Dashboard.
+ * Respeta temas activos y el tope diario.
+ */
+export async function countPendingFlashcardsToday(
+  supabase: SupabaseBrowserClient,
+  userId: string
+): Promise<number> {
+  const now = new Date();
+  const nowUtc = now.toISOString();
+  const sessionDate = getLocalDateString(now, STUDY_TIMEZONE);
+  const dayStartUtc = startOfLocalDayUtcISO(now, STUDY_TIMEZONE);
+
+  const activeThemes = await fetchActiveThemeIds(supabase, userId);
+  if (activeThemes.size === 0) return 0;
+
+  const reviewIds = await fetchDueReviewIds(supabase, userId, nowUtc, activeThemes);
+  const rows = await fetchDailyRows(supabase, userId, sessionDate);
+
+  if (rows.length > 0) {
+    // La lista de hoy ya existe: lo que falta + repasos que venzan y no estén en ella.
+    const inList = new Set(rows.map((r) => r.question_id));
+    const pending = rows.filter((r) => !r.completed).length;
+    const missingReviews = reviewIds.filter((id) => !inList.has(id)).length;
+
+    const completedIds = rows.filter((r) => r.completed).map((r) => r.question_id);
+    const dueAgain = await fetchDueAgainIds(supabase, userId, nowUtc, completedIds);
+
+    return pending + dueAgain.size + missingReviews;
+  }
+
+  // La lista de hoy aún no existe: estimar lo que se va a armar.
+  const debutsToday = await countDebutsToday(supabase, userId, dayStartUtc);
+  const remainingNew = Math.max(0, DAILY_NEW_CARD_LIMIT - debutsToday);
+  const newIds = await fetchDueNewIds(supabase, userId, nowUtc, activeThemes, remainingNew);
+
+  return reviewIds.length + newIds.length;
+}
+
+/**
  * Construye la sesión de flashcards del día.
+ *  - Primera entrada del día: arma y guarda la lista.
+ *  - Entradas siguientes: reutiliza la lista guardada.
  *
- *  - Primera entrada del día (hora local): arma y guarda la lista.
- *  - Entradas siguientes: reutiliza la lista guardada, así "X de Y" se
- *    mantiene aunque salgas y vuelvas.
- *
- * Lo que falta por ver (queue) = tarjetas de la lista que no están
- * terminadas (incluidas las de "Repetir", aunque FSRS las programe en unos
- * minutos) + las terminadas que FSRS ya vuelve a pedir (por ejemplo una
- * "Difícil" de unos minutos).
- *
- * Todas las consultas llevan .eq('user_id', userId) explícito. Es
- * redundante con RLS a propósito (defensa en profundidad).
- *
+ * Si el usuario no tiene temas activos, no se arma nada.
  * Esta función NO escribe en user_flashcard_progress: FSRS no se toca.
  */
 export async function loadDailyFlashcardSession(
@@ -316,43 +387,45 @@ export async function loadDailyFlashcardSession(
   const now = new Date();
   const sessionDate = getLocalDateString(now, STUDY_TIMEZONE);
 
-  if (!user) return { sessionDate, total: 0, completedIds: [], queue: [] };
+  if (!user) {
+    return { sessionDate, total: 0, completedIds: [], queue: [], activeThemeCount: 0 };
+  }
 
   const userId = user.id;
   const nowUtc = now.toISOString();
   const dayStartUtc = startOfLocalDayUtcISO(now, STUDY_TIMEZONE);
 
+  const activeThemes = await fetchActiveThemeIds(supabase, userId);
+  const activeThemeCount = activeThemes.size;
+
+  if (activeThemeCount === 0) {
+    return { sessionDate, total: 0, completedIds: [], queue: [], activeThemeCount: 0 };
+  }
+
   // ── Lista del día: se arma una vez, luego se reutiliza ─────────────────
   let rows = await fetchDailyRows(supabase, userId, sessionDate);
 
   if (rows.length === 0) {
-    await createTodaySnapshot(supabase, userId, sessionDate, nowUtc, dayStartUtc);
+    await createTodaySnapshot(supabase, userId, sessionDate, nowUtc, dayStartUtc, activeThemes);
     rows = await fetchDailyRows(supabase, userId, sessionDate);
   } else {
-    const added = await topUpDueReviews(supabase, userId, sessionDate, nowUtc, rows);
+    const added = await topUpDueReviews(
+      supabase,
+      userId,
+      sessionDate,
+      nowUtc,
+      rows,
+      activeThemes
+    );
     if (added) rows = await fetchDailyRows(supabase, userId, sessionDate);
   }
 
   if (rows.length === 0) {
-    return { sessionDate, total: 0, completedIds: [], queue: [] };
+    return { sessionDate, total: 0, completedIds: [], queue: [], activeThemeCount };
   }
 
   const completedIds = rows.filter((r) => r.completed).map((r) => r.question_id);
-
-  // ── Terminadas que FSRS ya vuelve a pedir (due_date <= ahora) ──────────
-  const dueAgain = new Set<string>();
-  for (const ids of chunk(completedIds, IN_CHUNK_SIZE)) {
-    const { data, error } = await supabase
-      .from('user_flashcard_progress')
-      .select('question_id')
-      .eq('user_id', userId)
-      .lte('due_date', nowUtc)
-      .in('question_id', ids);
-    if (error) throw error;
-    for (const r of (data ?? []) as unknown as any[]) {
-      dueAgain.add(String(r.question_id));
-    }
-  }
+  const dueAgain = await fetchDueAgainIds(supabase, userId, nowUtc, completedIds);
 
   // Orden: el de la lista del día (rows ya viene por posición).
   const queueIds = rows
@@ -360,7 +433,7 @@ export async function loadDailyFlashcardSession(
     .map((r) => r.question_id);
 
   if (queueIds.length === 0) {
-    return { sessionDate, total: rows.length, completedIds, queue: [] };
+    return { sessionDate, total: rows.length, completedIds, queue: [], activeThemeCount };
   }
 
   // ── Datos completos de las tarjetas de la cola ─────────────────────────
@@ -391,7 +464,7 @@ export async function loadDailyFlashcardSession(
   const queue: FlashcardWithProgress[] = [];
   for (const questionId of queueIds) {
     const flashcard = progressByQuestion.get(questionId);
-    if (!flashcard) continue; // pregunta borrada u oculta: se omite
+    if (!flashcard) continue;
 
     queue.push({
       id: flashcard.question_id,
@@ -425,7 +498,7 @@ export async function loadDailyFlashcardSession(
     } as FlashcardWithProgress);
   }
 
-  return { sessionDate, total: rows.length, completedIds, queue };
+  return { sessionDate, total: rows.length, completedIds, queue, activeThemeCount };
 }
 
 export function useDueFlashcards() {
@@ -435,10 +508,7 @@ export function useDueFlashcards() {
       const supabase = createClient();
       return loadDailyFlashcardSession(supabase);
     },
-    staleTime: 0, // CRÍTICO: anula caché para que SIEMPRE traiga datos reales
-    // La pantalla de flashcards pide los datos a mano (refetch) al entrar y
-    // lleva su propio estado; refrescar al volver a la pestaña solo
-    // repetiría consultas pesadas sin que nadie use el resultado.
+    staleTime: 0,
     refetchOnWindowFocus: false,
   });
 }
