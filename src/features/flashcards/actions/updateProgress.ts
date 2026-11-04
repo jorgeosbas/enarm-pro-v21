@@ -365,6 +365,19 @@ export async function resetAllFlashcardsProgressAction() {
 
     const userId = authData.user.id;
 
+    // Reiniciar el progreso TAMBIÉN desactiva todos los temas activos.
+    // Se hace con una función de base de datos que solo borra los temas
+    // del usuario que llama (ver supabase/migrations/0005).
+    const untyped = supabase as unknown as any;
+    const { error: themesError } = await untyped.rpc('reset_my_active_themes');
+    if (themesError) {
+      console.error('❌ Error desactivando temas:', themesError);
+      throw new Error(`Error al desactivar temas: ${themesError.message}`);
+    }
+
+    // Las listas del día guardadas ya no aplican: se borran.
+    await untyped.from('flashcard_daily_cards').delete().eq('user_id', userId);
+
     const { data: allFlashcards, error: fetchError } = await supabase
       .from('user_flashcard_progress')
       .select('id')
