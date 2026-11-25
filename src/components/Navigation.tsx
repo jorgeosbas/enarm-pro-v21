@@ -103,7 +103,10 @@ export function Navigation() {
 
   return (
     <>
-      {/* Header principal — glassmorphism.
+      {/* Header principal — fondo SÓLIDO (sin efecto de vidrio). Antes era
+          translúcido con desenfoque (bg-white/75 + backdrop-blur), lo que dejaba
+          ver y difuminar el degradado y las manchas de color de la página
+          detrás, y se veía "borroso" bajo la barra de estado de iOS.
           paddingTop: env(safe-area-inset-top) dispareja del padding normal:
           con statusBarStyle 'black-translucent' (agregado en la sesión
           pasada), iOS deja que la barra de hora/batería flote ENCIMA del
@@ -112,7 +115,7 @@ export function Navigation() {
           el reloj se encima con el logo (como reportaste). Es el mismo
           truco que ya usa el menú inferior con safe-area-inset-bottom. */}
       <header
-        className="sticky top-0 z-30 border-b border-indigo-300/40 bg-white/75 backdrop-blur-xl will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14]/80"
+        className="sticky top-0 z-30 border-b border-indigo-300/40 bg-white will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14]"
         style={{ paddingTop: HEADER_PADDING_TOP }}
       >
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 lg:px-6">
@@ -173,7 +176,7 @@ export function Navigation() {
           páginas a veces pintaba ENCIMA del menú, dejándolo inutilizable. */}
       {mounted && !loading && user && createPortal(
         <nav
-          className="fixed bottom-0 left-0 right-0 z-[9500] border-t border-indigo-300/40 bg-white/95 backdrop-blur-xl will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14]/95 md:hidden"
+          className="fixed bottom-0 left-0 right-0 z-[9500] border-t border-indigo-300/40 bg-white will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14] md:hidden"
           style={{ paddingBottom: BOTTOM_NAV_PADDING_BOTTOM }}
         >
           <div className="flex items-center justify-around px-2 py-2">
