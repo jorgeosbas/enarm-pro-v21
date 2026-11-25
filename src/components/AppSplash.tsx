@@ -42,9 +42,9 @@ export function AppSplash({ children }: { children: React.ReactNode }) {
         <div className="relative z-10 flex flex-col items-center">
           {/* Logo animado */}
           <div className="mb-6 animate-scale-in">
-            <div className="relative h-16 w-16">
+            <div className="relative flex h-20 w-20 items-center justify-center">
               <span className="absolute inset-0 animate-ping rounded-full bg-indigo-400/20 dark:bg-indigo-400/15" />
-              <KeeplerMark size={64} className="relative shadow-xl shadow-indigo-500/25" />
+              <KeeplerMark height={44} className="relative" />
             </div>
           </div>
 
