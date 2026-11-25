@@ -11,6 +11,27 @@ import { AuthStatus } from './AuthStatus';
 import { SearchModal } from './SearchModal';
 import { KeeplerLogo } from '@/components/KeeplerLogo';
 
+/**
+ * Ajuste fino de los márgenes del header y del menú inferior en iPhone/iPad
+ * (modo "pantalla de inicio"). Se expresan sobre el "safe area" de iOS: el
+ * espacio que iOS reserva para el reloj/Dynamic Island arriba y para la
+ * barra del home abajo. En computadora ese espacio vale 0, así que ahí no
+ * cambia nada.
+ *
+ *  - HEADER_TOP_EXTRA_PX: píxeles EXTRA entre la barra de estado de iOS y el
+ *    contenido del header (logo y botones).
+ *  - BOTTOM_NAV_SAFE_SCALE: qué fracción del espacio del home de iOS se
+ *    conserva debajo del menú inferior. 1 = como antes; 0.7 = 30% menos
+ *    (en iPhone ≈ 10 pt menos; en iPad ≈ 6 pt menos).
+ */
+const HEADER_TOP_EXTRA_PX = 4;
+const BOTTOM_NAV_SAFE_SCALE = 0.7;
+
+// min(env()*100, N px) vale N px cuando hay safe area y 0 cuando no la hay.
+const HEADER_PADDING_TOP = `calc(env(safe-area-inset-top) + min(env(safe-area-inset-top) * 100, ${HEADER_TOP_EXTRA_PX}px))`;
+const BOTTOM_NAV_PADDING_BOTTOM = `calc(env(safe-area-inset-bottom) * ${BOTTOM_NAV_SAFE_SCALE})`;
+
+
 // Mismas 4 pestañas que el menú de escritorio — antes el menú móvil
 // tenía 5 (incluía Flashcards y Perfil) y no coincidía con la versión web.
 // Se define FUERA del componente: son datos estáticos, así que en vez de
@@ -92,7 +113,7 @@ export function Navigation() {
           truco que ya usa el menú inferior con safe-area-inset-bottom. */}
       <header
         className="sticky top-0 z-30 border-b border-indigo-300/40 bg-white/75 backdrop-blur-xl will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14]/80"
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        style={{ paddingTop: HEADER_PADDING_TOP }}
       >
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 lg:px-6">
           {/* Logo */}
@@ -152,8 +173,8 @@ export function Navigation() {
           páginas a veces pintaba ENCIMA del menú, dejándolo inutilizable. */}
       {mounted && !loading && user && createPortal(
         <nav
-          className="fixed bottom-0 left-0 right-0 z-[9500] border-t border-indigo-300/40 bg-white/90 backdrop-blur-xl will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14]/95 md:hidden"
-          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+          className="fixed bottom-0 left-0 right-0 z-[9500] border-t border-indigo-300/40 bg-white/95 backdrop-blur-xl will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14]/95 md:hidden"
+          style={{ paddingBottom: BOTTOM_NAV_PADDING_BOTTOM }}
         >
           <div className="flex items-center justify-around px-2 py-2">
             {navItems.map((item) => (
