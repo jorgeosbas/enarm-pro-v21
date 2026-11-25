@@ -9,6 +9,7 @@ import { LogoutButton } from './LogoutButton';
 import { ThemeToggle } from './ThemeToggle';
 import { AuthStatus } from './AuthStatus';
 import { SearchModal } from './SearchModal';
+import { KeeplerLogo } from '@/components/KeeplerLogo';
 
 // Mismas 4 pestañas que el menú de escritorio — antes el menú móvil
 // tenía 5 (incluía Flashcards y Perfil) y no coincidía con la versión web.
@@ -95,11 +96,8 @@ export function Navigation() {
       >
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 lg:px-6">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center gap-1.5">
-            <span className="bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-[16px] font-medium text-transparent">
-              ENARM
-            </span>
-            <span className="text-[11px] font-medium text-slate-500 dark:text-white/30">Pro</span>
+          <Link href="/dashboard" className="flex items-center" aria-label="Keepler — ir al inicio">
+            <KeeplerLogo size="sm" />
           </Link>
 
           {/* Nav links desktop */}

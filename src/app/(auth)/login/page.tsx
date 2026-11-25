@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { KeeplerLogo } from '@/components/KeeplerLogo';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,11 +44,8 @@ export default function LoginPage() {
       <div className="relative z-10 w-full max-w-sm">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <span className="bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-3xl font-medium text-transparent">
-            ENARM
-          </span>
-          <span className="ml-1.5 text-sm font-medium text-slate-500 dark:text-white/30">Pro</span>
-          <p className="mt-2 text-[13px] text-slate-500 dark:text-white/40">
+          <KeeplerLogo size="lg" stacked />
+          <p className="mt-4 text-[13px] text-slate-500 dark:text-white/40">
             Tu centro de preparación para el ENARM
           </p>
         </div>

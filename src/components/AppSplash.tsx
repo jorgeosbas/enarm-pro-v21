@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { KeeplerMark, KeeplerWordmark } from '@/components/KeeplerLogo';
 
 /**
  * AppSplash — loader que aparece al abrir la app por primera vez.
@@ -43,20 +44,13 @@ export function AppSplash({ children }: { children: React.ReactNode }) {
           <div className="mb-6 animate-scale-in">
             <div className="relative h-16 w-16">
               <span className="absolute inset-0 animate-ping rounded-full bg-indigo-400/20 dark:bg-indigo-400/15" />
-              <span className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-500 shadow-xl shadow-indigo-500/25">
-                <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </span>
+              <KeeplerMark size={64} className="relative shadow-xl shadow-indigo-500/25" />
             </div>
           </div>
 
           {/* Wordmark */}
           <div className="animate-slide-up mb-6">
-            <span className="bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-2xl font-medium text-transparent">
-              ENARM
-            </span>
-            <span className="ml-1.5 text-sm font-medium text-slate-500 dark:text-white/30">Pro</span>
+            <KeeplerWordmark className="text-[28px]" />
           </div>
 
           {/* Dots */}

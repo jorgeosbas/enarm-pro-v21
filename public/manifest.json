@@ -1,6 +1,6 @@
 {
-  "name": "ENARM Pro",
-  "short_name": "ENARM Pro",
+  "name": "Keepler",
+  "short_name": "Keepler",
   "description": "Preparación personal para el ENARM.",
   "start_url": "/dashboard",
   "scope": "/",

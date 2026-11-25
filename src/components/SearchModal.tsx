@@ -156,7 +156,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           <div className="border-t border-indigo-200/60 bg-white/60 px-5 py-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
             <div className="flex items-center justify-between">
               <p className="text-[11px] text-slate-500 dark:text-white/25">
-                {results.length > 0 ? `${results.length} resultado${results.length !== 1 ? 's' : ''}` : 'ENARM Pro'}
+                {results.length > 0 ? `${results.length} resultado${results.length !== 1 ? 's' : ''}` : 'Keepler'}
               </p>
               <p className="text-[11px] text-slate-500 dark:text-white/25">
                 Presiona{' '}

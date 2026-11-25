@@ -82,6 +82,13 @@ export function useRandomQuestionsFromSubcategory(subcategoryId: string | null) 
         .sort(() => Math.random() - 0.5) as RandomQuestion[];
     },
     enabled: !!subcategoryId,
+    // La lista de preguntas de un cuestionario debe quedarse FIJA mientras
+    // lo estás contestando. Antes, al salir de la app un rato y volver (o al
+    // reconectarse el celular), React Query volvía a pedir las preguntas y,
+    // como se barajan al azar, la lista cambiaba a media sesión y te salía
+    // otra pregunta distinta a la que dejaste.
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -135,5 +142,12 @@ export function useRandomQuestionsFromAll() {
         }))
         .sort(() => Math.random() - 0.5) as RandomQuestion[];
     },
+    // La lista de preguntas de un cuestionario debe quedarse FIJA mientras
+    // lo estás contestando. Antes, al salir de la app un rato y volver (o al
+    // reconectarse el celular), React Query volvía a pedir las preguntas y,
+    // como se barajan al azar, la lista cambiaba a media sesión y te salía
+    // otra pregunta distinta a la que dejaste.
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }

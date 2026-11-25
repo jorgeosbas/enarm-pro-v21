@@ -80,18 +80,23 @@ export function FlashcardCard({
         </div>
       </div>
 
-      {/* Tarjeta con giro */}
-      <div className="relative mb-6 min-h-[320px] cursor-pointer">
+      {/* Tarjeta con giro.
+          Las dos caras comparten la MISMA celda de una cuadrícula (grid) en
+          vez de ir en position:absolute con alto fijo. Así la tarjeta crece
+          sola hasta la altura de la cara más alta y NUNCA recorta una
+          respuesta o explicación larga (antes se cortaba arriba y abajo sin
+          scroll ni aviso). */}
+      <div className="relative mb-6 grid cursor-pointer">
         {/* Cara frontal — pregunta */}
         <div
           onClick={() => setIsFlipped(true)}
-          className={`absolute inset-0 rounded-2xl border p-8 backdrop-blur-md transition-[transform,opacity] duration-500 will-change-transform ${
+          className={`col-start-1 row-start-1 flex min-h-[320px] flex-col justify-center rounded-2xl border p-8 backdrop-blur-md transition-[transform,opacity] duration-500 will-change-transform ${
             isFlipped
               ? 'scale-95 opacity-0 pointer-events-none z-0 border-indigo-300/50 bg-white/70 dark:border-white/[0.08] dark:bg-white/[0.04]'
               : 'scale-100 opacity-100 pointer-events-auto z-10 border-indigo-300/60 bg-white/85 dark:border-indigo-400/20 dark:bg-indigo-500/[0.06]'
           }`}
         >
-          <div className="flex h-full flex-col items-center justify-center text-center">
+          <div className="flex flex-col items-center justify-center text-center">
             <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/55 text-2xl shadow-sm shadow-indigo-500/10">
               <span className="text-white">❓</span>
             </div>
@@ -107,7 +112,7 @@ export function FlashcardCard({
         {/* Cara trasera — respuesta */}
         <div
           onClick={() => setIsFlipped(false)}
-          className={`absolute inset-0 overflow-hidden rounded-2xl border p-8 backdrop-blur-md transition-[transform,opacity] duration-500 will-change-transform ${
+          className={`relative col-start-1 row-start-1 flex min-h-[320px] flex-col justify-center overflow-hidden rounded-2xl border p-8 backdrop-blur-md transition-[transform,opacity] duration-500 will-change-transform ${
             isFlipped
               ? 'scale-100 opacity-100 pointer-events-auto z-10 border-slate-200/70 bg-white/90 dark:border-white/[0.08] dark:bg-white/[0.04]'
               : 'scale-95 opacity-0 pointer-events-none z-0 border-indigo-300/50 bg-white/70 dark:border-white/[0.08] dark:bg-white/[0.04]'
@@ -116,7 +121,7 @@ export function FlashcardCard({
           {/* Franja lateral de acento — identifica "correcto" sin teñir toda la tarjeta */}
           <div className="absolute inset-y-0 left-0 w-1.5 bg-emerald-500/75" />
 
-          <div className="flex h-full flex-col justify-center pl-2">
+          <div className="flex flex-col justify-center pl-2">
             <div className="mb-1.5 flex items-center gap-2">
               <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/70 text-[11px] text-white">✓</span>
               <p className="text-[11px] font-medium uppercase tracking-wider text-emerald-700 dark:text-emerald-400">

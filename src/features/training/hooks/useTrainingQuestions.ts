@@ -235,6 +235,9 @@ export function useTrainingQuestions(count: number) {
       return loadTrainingQuestions(supabase, count);
     },
     staleTime: 0,
+    // La lista de preguntas se queda fija mientras contestas (ver nota en
+    // useRandomQuestions): ni al volver a la app ni al reconectarse.
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }

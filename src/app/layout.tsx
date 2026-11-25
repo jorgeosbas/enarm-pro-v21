@@ -1,9 +1,20 @@
 import type { Metadata, Viewport } from 'next';
+import { Space_Grotesk } from 'next/font/google';
 import { Providers } from './providers';
 import './globals.css';
 
+// Fuente del logotipo de Keepler (Space Grotesk Bold). next/font la descarga al
+// compilar y la sirve desde tu propio dominio; llega a KeeplerLogo.tsx por la
+// variable CSS --font-space-grotesk.
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['700'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'ENARM Pro',
+  title: 'Keepler',
   description: 'Preparación personal para el ENARM.',
   manifest: '/manifest.json',
   icons: {
@@ -22,7 +33,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'ENARM Pro',
+    title: 'Keepler',
   },
 };
 
@@ -43,7 +54,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body>
+      <body className={spaceGrotesk.variable}>
         <Providers>{children}</Providers>
       </body>
     </html>
