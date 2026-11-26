@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useElementHeight } from '@/hooks/useElementHeight';
 import { LogoutButton } from './LogoutButton';
 import { ThemeToggle } from './ThemeToggle';
 import { AuthStatus } from './AuthStatus';
@@ -29,6 +30,9 @@ const BOTTOM_NAV_SAFE_SCALE = 0.7;
 
 // min(env()*100, N px) vale N px cuando hay safe area y 0 cuando no la hay.
 const HEADER_PADDING_TOP = `calc(env(safe-area-inset-top) + min(env(safe-area-inset-top) * 100, ${HEADER_TOP_EXTRA_PX}px))`;
+// Alto aproximado del header (zona segura + 57 px de contenido) para reservar
+// su lugar desde el primer pintado, antes de que se mida el real.
+const HEADER_FALLBACK_HEIGHT = `calc(${HEADER_PADDING_TOP} + 57px)`;
 const BOTTOM_NAV_PADDING_BOTTOM = `calc(env(safe-area-inset-bottom) * ${BOTTOM_NAV_SAFE_SCALE})`;
 
 
@@ -78,6 +82,8 @@ export function Navigation() {
   const { user, loading } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const headerHeight = useElementHeight(headerRef);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -103,19 +109,25 @@ export function Navigation() {
 
   return (
     <>
-      {/* Header principal — fondo SÓLIDO (sin efecto de vidrio). Antes era
-          translúcido con desenfoque (bg-white/75 + backdrop-blur), lo que dejaba
-          ver y difuminar el degradado y las manchas de color de la página
-          detrás, y se veía "borroso" bajo la barra de estado de iOS.
-          paddingTop: env(safe-area-inset-top) dispareja del padding normal:
-          con statusBarStyle 'black-translucent' (agregado en la sesión
-          pasada), iOS deja que la barra de hora/batería flote ENCIMA del
-          contenido en vez de empujarlo — así se ve nativo — pero eso
-          significa que el header tiene que dejarle ese espacio a mano, o
-          el reloj se encima con el logo (como reportaste). Es el mismo
-          truco que ya usa el menú inferior con safe-area-inset-bottom. */}
+      {/* Header principal.
+          - Es una barra FIJA (position: fixed), no "sticky". Con "sticky", iOS 26
+            no la reconoce como barra superior: no le extiende el color hacia la
+            barra de estado (en Safari se veía la franja del reloj de otro color)
+            y, en modo pantalla de inicio, le aplica encima su efecto de
+            desenfoque de borde de pantalla, que difuminaba el logo y los
+            íconos con más fuerza cuanto más arriba. Al ser fija y de color
+            sólido, iOS la trata como una barra de verdad.
+          - Fondo SÓLIDO, sin desenfoque propio y sin trucos de capa
+            (will-change / translateZ): tampoco hacen falta ya.
+          - Como ya no ocupa lugar en el flujo, justo debajo se reserva un
+            espacio de la misma altura (se mide solo, ver useElementHeight).
+          - paddingTop: deja libre la zona de la barra de estado de iOS (con
+            statusBarStyle 'black-translucent' el reloj/batería flotan ENCIMA
+            del contenido) más un pequeño extra. Es el mismo truco que usa el
+            menú inferior con safe-area-inset-bottom. */}
       <header
-        className="sticky top-0 z-30 border-b border-indigo-300/40 bg-white will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14]"
+        ref={headerRef}
+        className="fixed inset-x-0 top-0 z-30 border-b border-indigo-300/40 bg-white dark:border-white/[0.07] dark:bg-[#0a0a14]"
         style={{ paddingTop: HEADER_PADDING_TOP }}
       >
         <nav className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 lg:px-6">
@@ -148,7 +160,7 @@ export function Navigation() {
             {user && (
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="flex h-8 w-8 items-center justify-center gap-2 rounded-lg border border-indigo-300/50 bg-white/70 text-[12px] text-slate-500 backdrop-blur-md transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/40 dark:hover:bg-white/[0.07] sm:h-auto sm:w-auto sm:px-3 sm:py-1.5"
+                className="flex h-8 w-8 items-center justify-center gap-2 rounded-lg border border-indigo-300/50 bg-white/70 text-[12px] text-slate-500 transition-colors hover:bg-white/85 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-white/40 dark:hover:bg-white/[0.07] sm:h-auto sm:w-auto sm:px-3 sm:py-1.5"
                 title="Buscar preguntas (Ctrl+K)"
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -167,6 +179,10 @@ export function Navigation() {
         </nav>
       </header>
 
+      {/* Espacio que ocupa el header (ahora fijo) para que el contenido no
+          quede debajo de él. */}
+      <div aria-hidden="true" style={{ height: headerHeight ?? HEADER_FALLBACK_HEIGHT }} />
+
       {/* Modal de búsqueda — fuera del header para z-index correcto */}
       {user && <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />}
 
@@ -176,7 +192,7 @@ export function Navigation() {
           páginas a veces pintaba ENCIMA del menú, dejándolo inutilizable. */}
       {mounted && !loading && user && createPortal(
         <nav
-          className="fixed bottom-0 left-0 right-0 z-[9500] border-t border-indigo-300/40 bg-white will-change-transform [transform:translateZ(0)] dark:border-white/[0.07] dark:bg-[#0a0a14] md:hidden"
+          className="fixed bottom-0 left-0 right-0 z-[9500] border-t border-indigo-300/40 bg-white dark:border-white/[0.07] dark:bg-[#0a0a14] md:hidden"
           style={{ paddingBottom: BOTTOM_NAV_PADDING_BOTTOM }}
         >
           <div className="flex items-center justify-around px-2 py-2">

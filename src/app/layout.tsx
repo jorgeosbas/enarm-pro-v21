@@ -48,7 +48,13 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#090d16',
+  // Color de las barras del navegador: igual al del header y menú inferior
+  // (blanco en claro, azul oscuro de la app en oscuro). Antes era un azul oscuro
+  // fijo también en modo claro.
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a14' },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
